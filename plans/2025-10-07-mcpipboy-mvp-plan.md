@@ -43,13 +43,7 @@ Status: Plan completed and approved (2025-10-07, commit c81c391)
 ### [ ] 1) Project Foundation Setup
 Establish the basic project structure, dependencies, and build foundation.
 
-1. **Dependency Management**
-   - [ ] Add MCP SDK dependency: `go get github.com/modelcontextprotocol/go-sdk`
-   - [ ] Add Cobra dependency: `go get github.com/spf13/cobra@latest`
-   - [ ] Add testing dependencies: `go get github.com/stretchr/testify`
-   - [ ] Run `go mod tidy` to clean dependencies
-
-2. **Project Structure**
+1. **Project Structure**
    - [ ] Create `cmd/mcpipboy/` directory for main application
    - [ ] Create `internal/` directory for internal packages
    - [ ] Create `internal/server/` for MCP server logic
@@ -62,6 +56,12 @@ Establish the basic project structure, dependencies, and build foundation.
    - [ ] Create `internal/tools/version_test.go` for version tool tests
    - [ ] Create `internal/tools/registry.go` for tool registration system
    - [ ] Create `internal/tools/registry_test.go` for registry tests
+
+2. **Dependency Management**
+   - [ ] Add MCP SDK dependency: `go get github.com/modelcontextprotocol/go-sdk`
+   - [ ] Add Cobra dependency: `go get github.com/spf13/cobra@latest`
+   - [ ] Add testing dependencies: `go get github.com/stretchr/testify`
+   - [ ] Run `go mod tidy` to clean dependencies
 
 3. **Basic CLI Structure**
    - [ ] Create `cmd/mcpipboy/main.go` with basic cobra root command

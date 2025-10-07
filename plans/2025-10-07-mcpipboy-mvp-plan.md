@@ -167,10 +167,10 @@ Create comprehensive build automation, testing, and releases.
     - [x] Include release notes generation
 
 12. **Development Workflow**
-    - [ ] Add `install` target for local development
-    - [ ] Add `clean` target for build artifacts
-    - [ ] Add `deps` target for dependency management
-    - [ ] Add `check` target for pre-commit validation
+    - [x] Add `install` target for local development
+    - [x] Add `clean` target for build artifacts
+    - [x] Add `deps` target for dependency management
+    - [x] Add `check` target for pre-commit validation
 
 How to test
 - `just bump-version patch` should increment version correctly

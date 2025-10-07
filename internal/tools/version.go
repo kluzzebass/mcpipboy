@@ -31,3 +31,21 @@ func (v *VersionTool) ValidateParams(params map[string]interface{}) error {
 	// Version tool doesn't require any parameters
 	return nil
 }
+
+// GetInputSchema returns the JSON schema for tool input parameters
+func (v *VersionTool) GetInputSchema() map[string]interface{} {
+	return CreateJSONSchema([]ParameterDefinition{})
+}
+
+// GetOutputSchema returns the JSON schema for tool output
+func (v *VersionTool) GetOutputSchema() map[string]interface{} {
+	return map[string]interface{}{
+		"type": "object",
+		"properties": map[string]interface{}{
+			"result": map[string]interface{}{
+				"type":        "string",
+				"description": "The current version of mcpipboy",
+			},
+		},
+	}
+}

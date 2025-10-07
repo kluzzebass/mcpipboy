@@ -2,9 +2,12 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"slices"
 	"strings"
 
+	"github.com/kluzzebass/mcpipboy/internal/server"
 	"github.com/kluzzebass/mcpipboy/internal/tools"
 	"github.com/spf13/cobra"
 )
@@ -42,12 +45,12 @@ func init() {
 }
 
 // getAvailableTools returns a registry with all available tools registered
-func getAvailableTools() *tools.Registry {
-	registry := tools.NewRegistry()
+func getAvailableTools() *tools.ToolRegistry {
+	registry := tools.NewToolRegistry()
 
 	// Register all available tools
-	registry.Register(tools.NewEchoTool())
-	registry.Register(tools.NewVersionTool())
+	registry.RegisterTool(tools.NewEchoTool())
+	registry.RegisterTool(tools.NewVersionTool())
 	// TODO: Add more tools as they are implemented
 
 	return registry
@@ -56,7 +59,7 @@ func getAvailableTools() *tools.Registry {
 // toolCompletionFunc provides shell completion for tool names
 func toolCompletionFunc(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	registry := getAvailableTools()
-	return registry.List(), cobra.ShellCompDirectiveNoFileComp
+	return registry.ListTools(), cobra.ShellCompDirectiveNoFileComp
 }
 
 func runServe(cmd *cobra.Command, args []string) error {
@@ -67,12 +70,12 @@ func runServe(cmd *cobra.Command, args []string) error {
 
 	// Get available tools for validation
 	registry := getAvailableTools()
-	availableTools := registry.List()
+	availableTools := registry.ListTools()
 
 	// Validate enable tools
 	if len(enableTools) > 0 {
 		for _, tool := range enableTools {
-			if !contains(availableTools, tool) {
+			if !slices.Contains(availableTools, tool) {
 				return fmt.Errorf("invalid tool: %s. Available tools: %s", tool, strings.Join(availableTools, ", "))
 			}
 		}
@@ -81,35 +84,43 @@ func runServe(cmd *cobra.Command, args []string) error {
 	// Validate disable tools
 	if len(disableTools) > 0 {
 		for _, tool := range disableTools {
-			if !contains(availableTools, tool) {
+			if !slices.Contains(availableTools, tool) {
 				return fmt.Errorf("invalid tool: %s. Available tools: %s", tool, strings.Join(availableTools, ", "))
 			}
 		}
 	}
 
-	// TODO: Implement MCP server startup
-	fmt.Printf("Starting MCP server...\n")
-	fmt.Printf("Version: %s\n", rootCmd.Version)
-	fmt.Printf("Available tools: %s\n", strings.Join(availableTools, ", "))
+	// Use the same registry we created for validation
+	// (registry is already created above with all tools registered)
 
+	// Determine which tools to enable
+	var enabledTools []string
 	if len(enableTools) > 0 {
-		fmt.Printf("Enabled tools: %s\n", strings.Join(enableTools, ", "))
+		// Only enable specified tools
+		enabledTools = enableTools
 	} else if len(disableTools) > 0 {
-		fmt.Printf("Disabled tools: %s\n", strings.Join(disableTools, ", "))
+		// Enable all tools except disabled ones
+		for _, tool := range availableTools {
+			if !slices.Contains(disableTools, tool) {
+				enabledTools = append(enabledTools, tool)
+			}
+		}
 	} else {
-		fmt.Println("All tools enabled by default")
+		// Enable all tools by default
+		enabledTools = availableTools
 	}
 
-	// TODO: Start actual MCP server
-	return fmt.Errorf("MCP server not yet implemented")
-}
+	// Create MCP server
+	server := server.NewServer()
 
-// contains checks if a string slice contains a specific string
-func contains(slice []string, item string) bool {
-	for _, s := range slice {
-		if s == item {
-			return true
+	// Register only the enabled tools with the MCP server
+	for _, toolName := range enabledTools {
+		if tool, exists := registry.GetTool(toolName); exists {
+			server.RegisterTool(tool)
 		}
 	}
-	return false
+
+	// Start the MCP server
+	ctx := context.Background()
+	return server.Start(ctx)
 }

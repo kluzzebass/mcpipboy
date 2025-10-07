@@ -103,44 +103,44 @@ How to test
 
 ---
 
-### [ ] 2) MCP Server Core Implementation
+### [x] 2) MCP Server Core Implementation
 Implement the basic MCP server with echo tool functionality.
 
 5. **MCP Server Setup**
-   - [ ] Create `internal/server/server.go` with MCP server struct
-   - [ ] Create `internal/server/server_test.go` for server tests
-   - [ ] Implement server initialization and configuration
-   - [ ] Set up stdin/stdout communication handlers
-   - [ ] Add proper error handling and logging
+   - [x] Create `internal/server/server.go` with MCP server struct
+   - [x] Create `internal/server/server_test.go` for server tests
+   - [x] Implement server initialization and configuration
+   - [x] Set up stdin/stdout communication handlers
+   - [x] Add proper error handling and logging
 
 6. **Tool Interface Definition**
-   - [ ] Define common tool interface in `internal/tools/interfaces.go`
-   - [ ] Create tool metadata structures (name, description, parameters)
-   - [ ] Define tool execution interface for both CLI and MCP usage
-   - [ ] Add input validation interface for tool parameters
-   - [ ] Implement tool registration interface
+   - [x] Define common tool interface in `internal/tools/interfaces.go`
+   - [x] Create tool metadata structures (name, description, parameters)
+   - [x] Define tool execution interface for both CLI and MCP usage
+   - [x] Add input validation interface for tool parameters
+   - [x] Implement tool registration interface
 
 7. **Echo Tool Implementation**
-   - [ ] Implement echo tool struct conforming to tool interface
-   - [ ] Add input validation for echo message parameter
-   - [ ] Implement echo functionality that returns input message
-   - [ ] Add tool registration with MCP server
-   - [ ] Ensure CLI and MCP compatibility
+   - [x] Implement echo tool struct conforming to tool interface
+   - [x] Add input validation for echo message parameter
+   - [x] Implement echo functionality that returns input message
+   - [x] Add tool registration with MCP server
+   - [x] Ensure CLI and MCP compatibility
 
 8. **Version Tool Implementation**
-   - [ ] Create `VERSION` file with semantic version
-   - [ ] Implement version tool struct conforming to tool interface
-   - [ ] Implement version embedding using go:embed
-   - [ ] Add version parsing and validation
-   - [ ] Implement version functionality that returns current version
-   - [ ] Add tool registration with MCP server
+   - [x] Create `VERSION` file with semantic version
+   - [x] Implement version tool struct conforming to tool interface
+   - [x] Implement version embedding using go:embed
+   - [x] Add version parsing and validation
+   - [x] Implement version functionality that returns current version
+   - [x] Add tool registration with MCP server
 
 9. **Tool Registration System**
-   - [ ] Implement tool registry for managing available tools
-   - [ ] Add tool discovery and listing functionality
-   - [ ] Implement enable/disable logic for tool filtering
-   - [ ] Add tool metadata management (name, description, parameters)
-   - [ ] Ensure proper tool registration and deregistration
+   - [x] Implement tool registry for managing available tools
+   - [x] Add tool discovery and listing functionality
+   - [x] Implement enable/disable logic for tool filtering
+   - [x] Add tool metadata management (name, description, parameters)
+   - [x] Ensure proper tool registration and deregistration
 
 How to test
 - `./mcpipboy serve` should start MCP server without errors

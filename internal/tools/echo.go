@@ -41,3 +41,28 @@ func (e *EchoTool) ValidateParams(params map[string]interface{}) error {
 	}
 	return nil
 }
+
+// GetInputSchema returns the JSON schema for tool input parameters
+func (e *EchoTool) GetInputSchema() map[string]interface{} {
+	return CreateJSONSchema([]ParameterDefinition{
+		{
+			Name:        "message",
+			Type:        "string",
+			Description: "The message to echo back",
+			Required:    true,
+		},
+	})
+}
+
+// GetOutputSchema returns the JSON schema for tool output
+func (e *EchoTool) GetOutputSchema() map[string]interface{} {
+	return map[string]interface{}{
+		"type": "object",
+		"properties": map[string]interface{}{
+			"result": map[string]interface{}{
+				"type":        "string",
+				"description": "The echoed message",
+			},
+		},
+	}
+}

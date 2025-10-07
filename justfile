@@ -14,12 +14,36 @@ build-release:
     @mkdir -p dist
     # Linux
     GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w" -o dist/mcpipboy-linux-amd64 ./cmd/mcpipboy
+    GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go build -ldflags="-s -w" -o dist/mcpipboy-linux-arm64 ./cmd/mcpipboy
     # macOS
     GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w" -o dist/mcpipboy-darwin-amd64 ./cmd/mcpipboy
     GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 go build -ldflags="-s -w" -o dist/mcpipboy-darwin-arm64 ./cmd/mcpipboy
     # Windows
     GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w" -o dist/mcpipboy-windows-amd64.exe ./cmd/mcpipboy
     @echo "Release binaries built in dist/"
+
+# Create GitHub release
+release:
+    @echo "Creating GitHub release..."
+    @current_version=$$(cat VERSION) && \
+    echo "Creating release v$$current_version" && \
+    gh release create "v$$current_version" \
+        --title "mcpipboy v$$current_version" \
+        --notes "Release v$$current_version of mcpipboy - MCP server for AI agents" \
+        dist/mcpipboy-linux-amd64 \
+        dist/mcpipboy-linux-arm64 \
+        dist/mcpipboy-darwin-amd64 \
+        dist/mcpipboy-darwin-arm64 \
+        dist/mcpipboy-windows-amd64.exe
+
+# Generate release notes from git commits since last tag
+release-notes:
+    @echo "Generating release notes..."
+    @git log --oneline --pretty=format:"- %s" --since="1 month ago"
+
+# Build and release (builds binaries then creates GitHub release)
+build-and-release: build-release release
+    @echo "Build and release complete!"
 
 # Run tests
 test:

@@ -25,6 +25,9 @@ func NewServer() *Server {
 
 // RegisterTool registers a tool with the server
 func (s *Server) RegisterTool(tool tools.Tool) {
+	if tool == nil {
+		return // Ignore nil tools
+	}
 	s.tools[tool.Name()] = tool
 }
 

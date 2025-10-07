@@ -112,3 +112,86 @@ func TestServerStartWithTimeout(t *testing.T) {
 		t.Errorf("Unexpected error: %v", err)
 	}
 }
+
+func TestServerErrorHandling(t *testing.T) {
+	server := NewServer()
+
+	// Test registering nil tool
+	defer func() {
+		if r := recover(); r != nil {
+			t.Errorf("Registering nil tool should not panic: %v", r)
+		}
+	}()
+
+	// This should handle nil gracefully
+	server.RegisterTool(nil)
+
+	// Server should still be functional
+	if server.tools == nil {
+		t.Error("Server tools map should not be nil")
+	}
+}
+
+func TestServerMultipleTools(t *testing.T) {
+	server := NewServer()
+
+	// Register multiple tools
+	tool1 := &MockTool{
+		name:        "tool1",
+		description: "First tool",
+	}
+	tool2 := &MockTool{
+		name:        "tool2",
+		description: "Second tool",
+	}
+
+	server.RegisterTool(tool1)
+	server.RegisterTool(tool2)
+
+	if len(server.tools) != 2 {
+		t.Errorf("Expected 2 tools, got %d", len(server.tools))
+	}
+
+	if server.tools["tool1"] != tool1 {
+		t.Error("Tool1 not registered correctly")
+	}
+
+	if server.tools["tool2"] != tool2 {
+		t.Error("Tool2 not registered correctly")
+	}
+}
+
+func TestServerDuplicateToolRegistration(t *testing.T) {
+	server := NewServer()
+
+	tool1 := &MockTool{
+		name:        "duplicate",
+		description: "First registration",
+	}
+	tool2 := &MockTool{
+		name:        "duplicate",
+		description: "Second registration",
+	}
+
+	server.RegisterTool(tool1)
+	server.RegisterTool(tool2)
+
+	// Second registration should overwrite the first
+	if len(server.tools) != 1 {
+		t.Errorf("Expected 1 tool after duplicate registration, got %d", len(server.tools))
+	}
+
+	if server.tools["duplicate"] != tool2 {
+		t.Error("Second tool registration should overwrite the first")
+	}
+}
+
+func TestServerStopWithoutStart(t *testing.T) {
+	server := NewServer()
+
+	// Stop should work even if server was never started
+	err := server.Stop()
+	if err != nil {
+		t.Errorf("Stop() should work without Start(): %v", err)
+	}
+}

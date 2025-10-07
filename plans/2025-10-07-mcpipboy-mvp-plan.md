@@ -40,7 +40,7 @@ Status: Plan completed and approved (2025-10-07, commit c81c391)
 
 ---
 
-### [ ] 1) Project Foundation Setup
+### [x] 1) Project Foundation Setup
 Establish the basic project structure, dependencies, and build foundation.
 
 1. **Project Structure**
@@ -75,26 +75,31 @@ Establish the basic project structure, dependencies, and build foundation.
    - [x] Set up command structure to mirror internal tool organization
 
 4. **Build System Setup**
-   - [ ] Create `justfile` in project root
-   - [ ] Add build targets: `build`, `build-release` (with static linking)
-   - [ ] Add test targets: `test`, `test-coverage`
-   - [ ] Add development targets: `dev`, `lint`, `fmt`
-   - [ ] Add `install`, `clean`, `deps`, `check` targets
+   - [x] Create `justfile` in project root
+   - [x] Add build targets: `build`, `build-release` (with static linking)
+   - [x] Add test targets: `test`, `test-coverage`
+   - [x] Add development targets: `dev`, `lint`, `fmt`
+   - [x] Add workflow targets: `install`, `clean`, `deps`, `check`
+   - [x] Add version bumping targets: `bump-patch`, `bump-minor`, `bump-major`, `bump-prerelease`
+   - [x] Implement hidden default target using `_default` recipe
+   - [x] Add descriptive comments for all recipes (no redundant descriptions)
+   - [x] Configure release builds to use `dist/` directory (added to .gitignore)
+   - [x] Add static linking with `CGO_ENABLED=0` and `-ldflags="-s -w"`
 
 How to test
-- `just build` should compile successfully
-- `./bin/mcpipboy --help` should display help text
-- `./bin/mcpipboy version` should display version from embedded VERSION file
-- `./bin/mcpipboy serve --help` should show --enable/--disable options
-- `./bin/mcpipboy echo --help` should show echo tool arguments
-- `./bin/mcpipboy serve --enable version` should start server with only version tool
-- `./bin/mcpipboy serve --disable version` should start server with all tools except version
-- `./bin/mcpipboy serve --enable version --disable version` should show error (mutually exclusive)
+- `just` should show available recipes (hidden default target)
+- `just build` should compile successfully to `bin/`
+- `just build-release` should create static binaries in `dist/` for all platforms
 - `just test` should run all tests and pass with >80% coverage
-- `just --list` should show all available targets
-- Each command file should be focused and maintainable
-- All test files should be present and passing
-- VERSION file should be properly embedded and accessible
+- `just test-coverage` should generate HTML coverage report
+- `just bump-patch` should increment patch version (0.1.0 -> 0.1.1)
+- `just bump-minor` should increment minor version (0.1.0 -> 0.2.0)
+- `just bump-major` should increment major version (0.1.0 -> 1.0.0)
+- `just bump-prerelease` should add prerelease version (0.1.0 -> 0.1.0-alpha1)
+- `just check` should run fmt, vet, and test
+- `just clean` should remove bin/, dist/, and coverage files
+- All recipes should have descriptive comments (no redundant descriptions)
+- Release binaries should be statically linked and work without dependencies
 
 ---
 

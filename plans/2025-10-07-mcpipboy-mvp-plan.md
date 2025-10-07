@@ -44,35 +44,35 @@ Status: Plan completed and approved (2025-10-07, commit c81c391)
 Establish the basic project structure, dependencies, and build foundation.
 
 1. **Project Structure**
-   - [ ] Create `cmd/mcpipboy/` directory for main application
-   - [ ] Create `internal/` directory for internal packages
-   - [ ] Create `internal/server/` for MCP server logic
-   - [ ] Create `internal/tools/` for tool implementations
-   - [ ] Create `internal/tools/interfaces.go` for common tool interfaces
-   - [ ] Create `internal/tools/interfaces_test.go` for interface tests
-   - [ ] Create `internal/tools/echo.go` for echo tool implementation
-   - [ ] Create `internal/tools/echo_test.go` for echo tool tests
-   - [ ] Create `internal/tools/version.go` for version tool implementation
-   - [ ] Create `internal/tools/version_test.go` for version tool tests
-   - [ ] Create `internal/tools/registry.go` for tool registration system
-   - [ ] Create `internal/tools/registry_test.go` for registry tests
+   - [x] Create `cmd/mcpipboy/` directory for main application
+   - [x] Create `internal/` directory for internal packages
+   - [x] Create `internal/server/` for MCP server logic
+   - [x] Create `internal/tools/` for tool implementations
+   - [x] Create `internal/tools/interfaces.go` for common tool interfaces
+   - [x] Create `internal/tools/interfaces_test.go` for interface tests
+   - [x] Create `internal/tools/echo.go` for echo tool implementation
+   - [x] Create `internal/tools/echo_test.go` for echo tool tests
+   - [x] Create `internal/tools/version.go` for version tool implementation
+   - [x] Create `internal/tools/version_test.go` for version tool tests
+   - [x] Create `internal/tools/registry.go` for tool registration system
+   - [x] Create `internal/tools/registry_test.go` for registry tests
 
 2. **Dependency Management**
-   - [ ] Add MCP SDK dependency: `go get github.com/modelcontextprotocol/go-sdk`
-   - [ ] Add Cobra dependency: `go get github.com/spf13/cobra@latest`
-   - [ ] Add testing dependencies: `go get github.com/stretchr/testify`
-   - [ ] Run `go mod tidy` to clean dependencies
+   - [x] Add MCP SDK dependency: `go get github.com/modelcontextprotocol/go-sdk`
+   - [x] Add Cobra dependency: `go get github.com/spf13/cobra@latest`
+   - [x] Add testing dependencies: `go get github.com/stretchr/testify`
+   - [x] Run `go mod tidy` to clean dependencies
 
 3. **Basic CLI Structure**
-   - [ ] Create `cmd/mcpipboy/main.go` with basic cobra root command
-   - [ ] Create `cmd/mcpipboy/serve.go` for MCP server mode with --enable/--disable flags
-   - [ ] Create `cmd/mcpipboy/serve_test.go` for serve command tests
-   - [ ] Create `cmd/mcpipboy/echo.go` for echo tool command
-   - [ ] Create `cmd/mcpipboy/echo_test.go` for echo command tests
-   - [ ] Create `cmd/mcpipboy/version.go` for version tool command
-   - [ ] Create `cmd/mcpipboy/version_test.go` for version command tests
-   - [ ] Implement tool enable/disable logic with mutual exclusivity validation
-   - [ ] Set up command structure to mirror internal tool organization
+   - [x] Create `cmd/mcpipboy/main.go` with basic cobra root command
+   - [x] Create `cmd/mcpipboy/serve.go` for MCP server mode with --enable/--disable flags
+   - [x] Create `cmd/mcpipboy/serve_test.go` for serve command tests
+   - [x] Create `cmd/mcpipboy/echo.go` for echo tool command
+   - [x] Create `cmd/mcpipboy/echo_test.go` for echo command tests
+   - [x] Create `cmd/mcpipboy/version.go` for version tool command
+   - [x] Create `cmd/mcpipboy/version_test.go` for version command tests
+   - [x] Implement tool enable/disable logic with mutual exclusivity validation
+   - [x] Set up command structure to mirror internal tool organization
 
 4. **Build System Setup**
    - [ ] Create `justfile` in project root

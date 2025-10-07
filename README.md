@@ -1,2 +1,3 @@
 # mcpipboy
-Because even wasteland AIs deserve clean timestamps and proper UUIDs.
+
+**Flawlessly generated, rigorously validated - dependable data for the digital wasteland.**

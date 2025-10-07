@@ -13,7 +13,7 @@ Progress legend: [x] Completed, [>] In progress, [ ] Pending
 
 ---
 
-### [ ] 0) Planning document and alignment
+### [x] 0) Planning document and alignment
 Establish the development plan and ensure all requirements are captured correctly.
 
 1. **Requirements Analysis**
@@ -27,12 +27,16 @@ Establish the development plan and ensure all requirements are captured correctl
    - [x] Cobra for CLI argument parsing
    - [x] Go modules for dependency management
    - [x] Semantic versioning for releases
+   - [x] Individual tool commands for CLI usage (e.g., `mcpipboy echo`)
+   - [x] Tool enable/disable system to prevent AI agent confusion
+   - [x] Mutual exclusivity between --enable and --disable flags
+   - [x] Static builds for easy distribution and deployment
 
 How to test
 - [x] Plan document created and reviewed
-- [ ] Stakeholder approval of plan structure
+- [x] Stakeholder approval of plan structure
 
-Status: Plan created, awaiting approval
+Status: Plan completed and approved (2025-10-07, commit c81c391)
 
 ---
 
@@ -50,109 +54,154 @@ Establish the basic project structure, dependencies, and build foundation.
    - [ ] Create `internal/` directory for internal packages
    - [ ] Create `internal/server/` for MCP server logic
    - [ ] Create `internal/tools/` for tool implementations
+   - [ ] Create `internal/tools/interfaces.go` for common tool interfaces
+   - [ ] Create `internal/tools/interfaces_test.go` for interface tests
+   - [ ] Create `internal/tools/echo.go` for echo tool implementation
+   - [ ] Create `internal/tools/echo_test.go` for echo tool tests
+   - [ ] Create `internal/tools/version.go` for version tool implementation
+   - [ ] Create `internal/tools/version_test.go` for version tool tests
+   - [ ] Create `internal/tools/registry.go` for tool registration system
+   - [ ] Create `internal/tools/registry_test.go` for registry tests
 
 3. **Basic CLI Structure**
    - [ ] Create `cmd/mcpipboy/main.go` with basic cobra root command
-   - [ ] Add version command to display semantic version
-   - [ ] Add serve command for MCP server mode
+   - [ ] Create `cmd/mcpipboy/serve.go` for MCP server mode with --enable/--disable flags
+   - [ ] Create `cmd/mcpipboy/serve_test.go` for serve command tests
+   - [ ] Create `cmd/mcpipboy/echo.go` for echo tool command
+   - [ ] Create `cmd/mcpipboy/echo_test.go` for echo command tests
+   - [ ] Create `cmd/mcpipboy/version.go` for version tool command
+   - [ ] Create `cmd/mcpipboy/version_test.go` for version command tests
+   - [ ] Implement tool enable/disable logic with mutual exclusivity validation
+   - [ ] Set up command structure to mirror internal tool organization
+
+4. **Build System Setup**
+   - [ ] Create `justfile` in project root
+   - [ ] Add build targets: `build`, `build-release` (with static linking)
+   - [ ] Add test targets: `test`, `test-coverage`
+   - [ ] Add development targets: `dev`, `lint`, `fmt`
+   - [ ] Add `install`, `clean`, `deps`, `check` targets
 
 How to test
-- `go build ./cmd/mcpipboy` should compile successfully
-- `./mcpipboy --help` should display help text
-- `./mcpipboy version` should display version information
+- `just build` should compile successfully
+- `./bin/mcpipboy --help` should display help text
+- `./bin/mcpipboy version` should display version from embedded VERSION file
+- `./bin/mcpipboy serve --help` should show --enable/--disable options
+- `./bin/mcpipboy echo --help` should show echo tool arguments
+- `./bin/mcpipboy serve --enable version` should start server with only version tool
+- `./bin/mcpipboy serve --disable version` should start server with all tools except version
+- `./bin/mcpipboy serve --enable version --disable version` should show error (mutually exclusive)
+- `just test` should run all tests and pass with >80% coverage
+- `just --list` should show all available targets
+- Each command file should be focused and maintainable
+- All test files should be present and passing
+- VERSION file should be properly embedded and accessible
 
 ---
 
 ### [ ] 2) MCP Server Core Implementation
 Implement the basic MCP server with echo tool functionality.
 
-1. **MCP Server Setup**
+5. **MCP Server Setup**
    - [ ] Create `internal/server/server.go` with MCP server struct
+   - [ ] Create `internal/server/server_test.go` for server tests
    - [ ] Implement server initialization and configuration
    - [ ] Set up stdin/stdout communication handlers
    - [ ] Add proper error handling and logging
 
-2. **Echo Tool Implementation**
-   - [ ] Create `internal/tools/echo.go` with echo tool struct
-   - [ ] Implement tool registration with MCP server
-   - [ ] Add input validation for echo message
-   - [ ] Implement echo functionality that returns input message
-
-3. **Tool Registration System**
-   - [ ] Create `internal/tools/registry.go` for tool management
+6. **Tool Interface Definition**
+   - [ ] Define common tool interface in `internal/tools/interfaces.go`
+   - [ ] Create tool metadata structures (name, description, parameters)
+   - [ ] Define tool execution interface for both CLI and MCP usage
+   - [ ] Add input validation interface for tool parameters
    - [ ] Implement tool registration interface
+
+7. **Echo Tool Implementation**
+   - [ ] Implement echo tool struct conforming to tool interface
+   - [ ] Add input validation for echo message parameter
+   - [ ] Implement echo functionality that returns input message
+   - [ ] Add tool registration with MCP server
+   - [ ] Ensure CLI and MCP compatibility
+
+8. **Version Tool Implementation**
+   - [ ] Create `VERSION` file with semantic version
+   - [ ] Implement version tool struct conforming to tool interface
+   - [ ] Implement version embedding using go:embed
+   - [ ] Add version parsing and validation
+   - [ ] Implement version functionality that returns current version
+   - [ ] Add tool registration with MCP server
+
+9. **Tool Registration System**
+   - [ ] Implement tool registry for managing available tools
    - [ ] Add tool discovery and listing functionality
-   - [ ] Ensure proper tool metadata (name, description, parameters)
+   - [ ] Implement enable/disable logic for tool filtering
+   - [ ] Add tool metadata management (name, description, parameters)
+   - [ ] Ensure proper tool registration and deregistration
 
 How to test
 - `./mcpipboy serve` should start MCP server without errors
-- Send MCP request for tool list should return echo tool
+- Send MCP request for tool list should return echo and version tools
 - Send MCP request to call echo tool should return echoed message
+- Send MCP request to call version tool should return current version
 - Server should handle malformed requests gracefully
 
 ---
 
 ### [ ] 3) Build & Release System
-Create comprehensive justfile for build automation, testing, and releases.
+Create comprehensive build automation, testing, and releases.
 
-1. **Justfile Creation**
-   - [ ] Create `justfile` in project root
-   - [ ] Add build targets: `build`, `build-release`
-   - [ ] Add test targets: `test`, `test-coverage`
-   - [ ] Add development targets: `dev`, `lint`, `fmt`
-
-2. **Semantic Versioning**
+8. **Semantic Versioning**
    - [ ] Add version management with `bump-version` target
    - [ ] Implement automatic version injection in builds
    - [ ] Add version validation and consistency checks
    - [ ] Create version bumping for patch, minor, major
 
-3. **Release Automation**
+9. **Release Automation**
    - [ ] Add `release` target for GitHub releases
-   - [ ] Implement cross-platform builds (linux, darwin, windows)
+   - [ ] Implement cross-platform static builds (linux, darwin, windows)
    - [ ] Add artifact generation and upload
    - [ ] Include release notes generation
 
-4. **Development Workflow**
-   - [ ] Add `install` target for local development
-   - [ ] Add `clean` target for build artifacts
-   - [ ] Add `deps` target for dependency management
-   - [ ] Add `check` target for pre-commit validation
+10. **Development Workflow**
+    - [ ] Add `install` target for local development
+    - [ ] Add `clean` target for build artifacts
+    - [ ] Add `deps` target for dependency management
+    - [ ] Add `check` target for pre-commit validation
 
 How to test
-- `just --list` should show all available targets
-- `just build` should create binary successfully
-- `just test` should run all tests and pass
 - `just bump-version patch` should increment version correctly
+- `just build-release` should create statically linked binaries for all platforms
+- `ldd ./bin/mcpipboy` should show "not a dynamic executable" (on Linux)
+- `otool -L ./bin/mcpipboy` should show minimal dependencies (on macOS)
+- `just release` should create GitHub release with artifacts
 
 ---
 
 ### [ ] 4) Testing & Validation
 Ensure MVP works correctly with MCP clients and meets requirements.
 
-1. **Unit Testing**
-   - [ ] Create tests for echo tool functionality
-   - [ ] Add tests for MCP server initialization
-   - [ ] Test error handling and edge cases
-   - [ ] Achieve >80% test coverage
+11. **Unit Testing**
+    - [ ] Create tests for echo tool functionality
+    - [ ] Add tests for MCP server initialization
+    - [ ] Test error handling and edge cases
+    - [ ] Achieve >80% test coverage
 
-2. **Integration Testing**
-   - [ ] Test MCP server with actual MCP client
-   - [ ] Verify stdin/stdout communication works
-   - [ ] Test tool discovery and execution
-   - [ ] Validate JSON-RPC protocol compliance
+12. **Integration Testing**
+    - [ ] Test MCP server with actual MCP client
+    - [ ] Verify stdin/stdout communication works
+    - [ ] Test tool discovery and execution
+    - [ ] Validate JSON-RPC protocol compliance
 
-3. **Documentation**
-   - [ ] Update README with usage instructions
-   - [ ] Add API documentation for tools
-   - [ ] Create example MCP client integration
-   - [ ] Document build and release process
+13. **Documentation**
+    - [ ] Update README with usage instructions
+    - [ ] Add API documentation for tools
+    - [ ] Create example MCP client integration
+    - [ ] Document build and release process
 
-4. **Performance & Reliability**
-   - [ ] Test server stability under load
-   - [ ] Verify memory usage is reasonable
-   - [ ] Test graceful shutdown handling
-   - [ ] Validate error recovery mechanisms
+14. **Performance & Reliability**
+    - [ ] Test server stability under load
+    - [ ] Verify memory usage is reasonable
+    - [ ] Test graceful shutdown handling
+    - [ ] Validate error recovery mechanisms
 
 How to test
 - All unit tests pass with `just test`

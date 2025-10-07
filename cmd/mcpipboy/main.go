@@ -11,8 +11,10 @@ import (
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "mcpipboy",
-	Short: "Flawlessly generated, rigorously validated - dependable data for the digital wasteland",
-	Long: `mcpipboy is an MCP (Model Context Protocol) server that provides agentic AIs 
+	Short: "MCP server for AI agent utility tools",
+	Long: `Flawlessly generated, rigorously validated - dependable data for the digital wasteland.
+
+mcpipboy is an MCP (Model Context Protocol) server that provides agentic AIs 
 with essential tools for common tasks they struggle with, including UUID generation, 
 checksummed identifier verification/generation (IMO, MMSI, credit card numbers, ISBN, etc.), 
 and other utility functions.`,

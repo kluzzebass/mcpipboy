@@ -17,7 +17,9 @@ var serveCmd = &cobra.Command{
 	Use:   "serve",
 	Short: "Start the MCP server",
 	Long: `Start the MCP (Model Context Protocol) server that provides tools to AI agents.
-The server communicates via stdin/stdout and can be configured to enable or disable specific tools.`,
+The server communicates via stdin/stdout and can be configured to enable or disable specific tools.
+
+You can also toggle tools on/off using the tools manager in your MCP client.`,
 	RunE: runServe,
 }
 

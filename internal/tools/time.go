@@ -24,7 +24,7 @@ func (t *TimeTool) Name() string {
 
 // Description returns the tool's description
 func (t *TimeTool) Description() string {
-	return "Comprehensive time utility with parsing, formatting, and calculations"
+	return "Comprehensive time utility with parsing, formatting, and calculations. Note: Very ancient dates (around year 0-1) may not be supported due to parsing library limitations."
 }
 
 // Execute runs the time tool
@@ -104,6 +104,8 @@ func (t *TimeTool) formatTime(tm time.Time, format string) (string, error) {
 		return tm.Format("2006-01-02 15:04:05"), nil
 	case "time":
 		return tm.Format("15:04:05"), nil
+	case "weekday":
+		return tm.Format("Monday, January 2, 2006"), nil
 	default:
 		return "", fmt.Errorf("invalid format: %s", format)
 	}
@@ -116,7 +118,7 @@ func (t *TimeTool) ValidateParams(params map[string]interface{}) error {
 	// Validate format
 	if format, ok := params["format"]; ok {
 		if formatStr, ok := format.(string); ok {
-			validFormats := []string{"iso", "rfc3339", "unix", "date", "datetime", "time"}
+			validFormats := []string{"iso", "rfc3339", "unix", "date", "datetime", "time", "weekday"}
 			if !contains(validFormats, formatStr) {
 				return fmt.Errorf("invalid format: %s, must be one of: %s", formatStr, strings.Join(validFormats, ", "))
 			}
@@ -148,7 +150,7 @@ func (t *TimeTool) GetInputSchema() map[string]interface{} {
 		{
 			Name:        "format",
 			Type:        "string",
-			Description: "Output format: iso, rfc3339, unix, date, datetime, time",
+			Description: "Output format: iso, rfc3339, unix, date, datetime, time, weekday",
 			Required:    false,
 		},
 		{

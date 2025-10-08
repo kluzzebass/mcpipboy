@@ -41,8 +41,11 @@ var (
 )
 
 func init() {
+	// Set group ID for time command
+	timeCmd.GroupID = "tools"
+
 	timeCmd.Flags().StringVar(&timeType, "type", "now", "Time type: now, today, timestamp, unix, relative")
-	timeCmd.Flags().StringVar(&timeFormat, "format", "iso", "Output format: iso, rfc3339, unix, date, datetime, time")
+	timeCmd.Flags().StringVar(&timeFormat, "format", "iso", "Output format: iso, rfc3339, unix, date, datetime, time, weekday")
 	timeCmd.Flags().StringVar(&timezone, "timezone", "utc", "Timezone: utc, local, or IANA timezone name")
 	timeCmd.Flags().StringVar(&timeInput, "input", "", "Input timestamp (required for timestamp/unix types)")
 	timeCmd.Flags().StringVar(&timeFrom, "from", "", "Start timestamp for relative calculations")
@@ -50,6 +53,9 @@ func init() {
 	timeCmd.Flags().StringVar(&timeOffset, "offset", "", "Time offset (e.g., +1h, -2d, +30m)")
 
 	// Validation is handled in runTime function
+
+	// Add command to root
+	rootCmd.AddCommand(timeCmd)
 }
 
 func runTime(cmd *cobra.Command, args []string) error {

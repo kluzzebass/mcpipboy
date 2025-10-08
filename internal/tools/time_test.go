@@ -228,6 +228,13 @@ func TestTimeToolValidateParams(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "weekday format",
+			params: map[string]interface{}{
+				"format": "weekday",
+			},
+			wantErr: false,
+		},
 	}
 
 	for _, tt := range tests {
@@ -330,6 +337,39 @@ func TestTimeToolEdgeCases(t *testing.T) {
 				} else {
 					t.Errorf("Expected string result, got %T", result)
 				}
+			},
+		},
+		{
+			name: "ancient date year 1",
+			params: map[string]interface{}{
+				"input":  "0001-01-01T00:00:00Z",
+				"format": "weekday",
+			},
+			wantErr: true,
+			validate: func(t *testing.T, result interface{}) {
+				// This should fail due to go-anytime library limitations
+			},
+		},
+		{
+			name: "ancient date year 0",
+			params: map[string]interface{}{
+				"input":  "0000-01-01T00:00:00Z",
+				"format": "weekday",
+			},
+			wantErr: true,
+			validate: func(t *testing.T, result interface{}) {
+				// This should fail due to go-anytime library limitations
+			},
+		},
+		{
+			name: "ancient date natural language",
+			params: map[string]interface{}{
+				"input":  "January 1, 1 AD",
+				"format": "weekday",
+			},
+			wantErr: true,
+			validate: func(t *testing.T, result interface{}) {
+				// This should fail due to go-anytime library limitations
 			},
 		},
 	}

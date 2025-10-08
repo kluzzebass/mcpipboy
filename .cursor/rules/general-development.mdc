@@ -3,6 +3,7 @@ description: General development practices
 alwaysApply: true
 ---
 
+- Don't EVER commit without my approval!
 - Look for established patterns in the existing codebase, and try to replicate where possible.
 - When committing your work, don't include all the intermediate steps in the commit message; just keep it down to what the end result is.
 - Prefer editing existing files over creating new ones unless explicitly required.

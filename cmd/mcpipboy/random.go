@@ -55,9 +55,7 @@ func runRandom(cmd *cobra.Command, args []string) error {
 	if randomType != "" {
 		params["type"] = randomType
 	}
-	if randomCount > 0 {
-		params["count"] = float64(randomCount)
-	}
+	params["count"] = float64(randomCount)
 	if randomMin != 0 || randomMax != 100 {
 		params["min"] = randomMin
 		params["max"] = randomMax

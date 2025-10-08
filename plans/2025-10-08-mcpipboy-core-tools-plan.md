@@ -190,23 +190,25 @@ Status: Complete - UUID tool with enhanced validation and metadata extraction
 
 Implement International Maritime Organization (IMO) number validation and generation.
 
-7. **IMO Tool**
-   - [ ] Create `internal/tools/imo.go` with flexible IMO functionality
-   - [ ] Implement operation parameter: "validate", "generate"
-   - [ ] Add IMO validation with checksum algorithm (7-digit number with check digit)
-   - [ ] Add IMO generation with correct checksum calculation and count parameter
-   - [ ] Add comprehensive test coverage in `internal/tools/imo_test.go`
-   - [ ] Add CLI command in `cmd/mcpipboy/imo.go`
-   - [ ] Add CLI tests in `cmd/mcpipboy/imo_test.go`
+7. **IMO Tool** [x]
+   - [x] Create `internal/tools/imo.go` with flexible IMO functionality
+   - [x] Implement operation parameter: "validate", "generate"
+   - [x] Add IMO validation with checksum algorithm (7-digit number with check digit)
+   - [x] Add IMO generation with correct checksum calculation and count parameter
+   - [x] Add comprehensive test coverage in `internal/tools/imo_test.go`
+   - [x] Add CLI command in `cmd/mcpipboy/imo.go`
+   - [x] Add CLI tests in `cmd/mcpipboy/imo_test.go`
+   - [x] Register IMO tool with MCP server
 
 How to test
 - Run `just test` to ensure all IMO tests pass
-- Test validation: `mcpipboy imo --operation validate --input "1234567"`
+- Test CLI commands: `mcpipboy imo --operation validate --input "1234567"`
 - Test generation: `mcpipboy imo --operation generate --count 5`
+- Test validation: `mcpipboy imo --operation validate --input "1234568"` (should fail)
 - Verify MCP integration: tool appears in `tools/list` and executes via `tools/call`
-- Test with known valid/invalid IMO numbers and checksum validation
+- Test edge cases: invalid operations, missing input, count limits
 
-Status: Pending - IMO tool implementation
+Status: Complete - IMO tool with validation and generation functionality
 
 ---
 

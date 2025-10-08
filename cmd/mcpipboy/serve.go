@@ -56,6 +56,7 @@ func getAvailableTools() *tools.ToolRegistry {
 	registry.RegisterTool(tools.NewTimeTool())
 	registry.RegisterTool(tools.NewRandomTool())
 	registry.RegisterTool(tools.NewUUIDTool())
+	registry.RegisterTool(tools.NewIMOTool())
 	// TODO: Add more tools as they are implemented
 
 	return registry

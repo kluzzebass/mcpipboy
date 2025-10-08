@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"math/rand"
 	"strings"
-	"time"
 )
 
 // RandomTool implements comprehensive random number generation
@@ -79,9 +78,8 @@ func (r *RandomTool) generateIntegers(params map[string]interface{}, count int) 
 	maxInt := int64(max)
 
 	// Generate random integers
-	rand.Seed(time.Now().UnixNano())
 	var results []int64
-	for i := 0; i < count; i++ {
+	for range count {
 		var value int64
 		if minInt == maxInt {
 			// If min equals max, return that exact value
@@ -127,9 +125,8 @@ func (r *RandomTool) generateFloats(params map[string]interface{}, count int) (i
 	}
 
 	// Generate random floats
-	rand.Seed(time.Now().UnixNano())
 	var results []float64
-	for i := 0; i < count; i++ {
+	for range count {
 		var value float64
 		if min == max {
 			// If min equals max, use that value but still apply precision rounding
@@ -143,7 +140,7 @@ func (r *RandomTool) generateFloats(params map[string]interface{}, count int) (i
 			value = float64(int64(value + 0.5))
 		} else {
 			multiplier := 1.0
-			for j := 0; j < int(precision); j++ {
+			for range int(precision) {
 				multiplier *= 10
 			}
 			value = float64(int64(value*multiplier+0.5)) / multiplier
@@ -161,9 +158,8 @@ func (r *RandomTool) generateFloats(params map[string]interface{}, count int) (i
 // generateBooleans generates random booleans
 func (r *RandomTool) generateBooleans(count int) (interface{}, error) {
 	// Generate random booleans
-	rand.Seed(time.Now().UnixNano())
 	var results []bool
-	for i := 0; i < count; i++ {
+	for range count {
 		value := rand.Intn(2) == 1
 		results = append(results, value)
 	}

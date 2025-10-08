@@ -62,7 +62,7 @@ func (t *TimeTool) Execute(params map[string]interface{}) (interface{}, error) {
 				errorMsg += "\n\nHint: Try using a more standard date format like 'YYYY-MM-DD' or 'January 1, 2025'."
 			}
 
-			return nil, fmt.Errorf(errorMsg)
+			return nil, fmt.Errorf("%s", errorMsg)
 		}
 	} else {
 		// No input provided, use current time

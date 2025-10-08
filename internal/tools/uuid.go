@@ -48,7 +48,7 @@ func (u *UUIDTool) Execute(params map[string]interface{}) (interface{}, error) {
 	// Execute based on version
 	switch version {
 	case "v1":
-		return u.generateV1(params, int(count))
+		return u.generateV1(int(count))
 	case "v4":
 		return u.generateV4(int(count))
 	case "v5":
@@ -63,9 +63,9 @@ func (u *UUIDTool) Execute(params map[string]interface{}) (interface{}, error) {
 }
 
 // generateV1 generates UUID v1 (time-based)
-func (u *UUIDTool) generateV1(params map[string]interface{}, count int) (interface{}, error) {
+func (u *UUIDTool) generateV1(count int) (interface{}, error) {
 	var results []string
-	for i := 0; i < count; i++ {
+	for range count {
 		id, err := uuid.NewUUID()
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate UUID v1: %v", err)
@@ -83,7 +83,7 @@ func (u *UUIDTool) generateV1(params map[string]interface{}, count int) (interfa
 // generateV4 generates UUID v4 (random)
 func (u *UUIDTool) generateV4(count int) (interface{}, error) {
 	var results []string
-	for i := 0; i < count; i++ {
+	for range count {
 		id, err := uuid.NewRandom()
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate UUID v4: %v", err)
@@ -117,7 +117,7 @@ func (u *UUIDTool) generateV5(params map[string]interface{}, count int) (interfa
 	}
 
 	var results []string
-	for i := 0; i < count; i++ {
+	for i := range count {
 		// For multiple generations, append index to make them unique
 		uniqueName := name
 		if count > 1 {
@@ -138,7 +138,7 @@ func (u *UUIDTool) generateV5(params map[string]interface{}, count int) (interfa
 // generateV7 generates UUID v7 (time-ordered)
 func (u *UUIDTool) generateV7(count int) (interface{}, error) {
 	var results []string
-	for i := 0; i < count; i++ {
+	for range count {
 		// Generate UUID v7 using time-based approach
 		// Note: Go's uuid package doesn't have v7 yet, so we'll implement a basic version
 		id, err := u.generateV7Impl()
@@ -228,7 +228,7 @@ func (u *UUIDTool) validateUUID(params map[string]interface{}) (interface{}, err
 		result["mac_address"] = u.extractV1MAC(id)
 	case 5:
 		// UUID v5: Extract namespace (if possible to determine)
-		namespace := u.extractV5Namespace(id)
+		namespace := u.extractV5Namespace()
 		if namespace != "" {
 			result["namespace"] = namespace
 		}
@@ -246,21 +246,21 @@ func (u *UUIDTool) extractV1Timestamp(id uuid.UUID) string {
 	// UUID v1 timestamp is in the first 8 bytes (60 bits)
 	// Convert to Unix timestamp (seconds since epoch)
 	bytes := id[:8]
-	
+
 	// The timestamp in UUID v1 is in 100-nanosecond intervals since 1582-10-15 00:00:00 UTC
 	// We need to convert this to Unix timestamp
 	// UUID v1 epoch: 1582-10-15 00:00:00 UTC
 	// Unix epoch: 1970-01-01 00:00:00 UTC
 	// Difference: 122192928000000000 nanoseconds
-	
+
 	// Read the timestamp as big-endian
-	timestamp := int64(bytes[0])<<40 | int64(bytes[1])<<32 | int64(bytes[2])<<24 | 
+	timestamp := int64(bytes[0])<<40 | int64(bytes[1])<<32 | int64(bytes[2])<<24 |
 		int64(bytes[3])<<16 | int64(bytes[4])<<8 | int64(bytes[5])
-	
+
 	// Convert from 100-nanosecond intervals to seconds
 	// and adjust for the epoch difference
 	unixTimestamp := (timestamp - 122192928000000000) / 10000000
-	
+
 	return time.Unix(unixTimestamp, 0).UTC().Format(time.RFC3339)
 }
 
@@ -268,12 +268,12 @@ func (u *UUIDTool) extractV1Timestamp(id uuid.UUID) string {
 func (u *UUIDTool) extractV1MAC(id uuid.UUID) string {
 	// MAC address is in the last 6 bytes
 	bytes := id[10:]
-	return fmt.Sprintf("%02x:%02x:%02x:%02x:%02x:%02x", 
+	return fmt.Sprintf("%02x:%02x:%02x:%02x:%02x:%02x",
 		bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5])
 }
 
 // extractV5Namespace attempts to determine the namespace from a UUID v5
-func (u *UUIDTool) extractV5Namespace(id uuid.UUID) string {
+func (u *UUIDTool) extractV5Namespace() string {
 	// For UUID v5, we can't easily reverse-engineer the namespace
 	// without knowing the original name that was hashed
 	// This is a placeholder - in practice, you'd need the original name too
@@ -285,15 +285,15 @@ func (u *UUIDTool) extractV7Timestamp(id uuid.UUID) string {
 	// UUID v7 timestamp is in the first 6 bytes (48 bits)
 	// It's a Unix timestamp in milliseconds
 	bytes := id[:6]
-	
+
 	// Read the timestamp as big-endian (48 bits)
-	timestamp := int64(bytes[0])<<40 | int64(bytes[1])<<32 | int64(bytes[2])<<24 | 
+	timestamp := int64(bytes[0])<<40 | int64(bytes[1])<<32 | int64(bytes[2])<<24 |
 		int64(bytes[3])<<16 | int64(bytes[4])<<8 | int64(bytes[5])
-	
+
 	// Convert from milliseconds to seconds
 	unixTimestamp := timestamp / 1000
 	nanoSeconds := (timestamp % 1000) * 1000000
-	
+
 	return time.Unix(unixTimestamp, nanoSeconds).UTC().Format(time.RFC3339)
 }
 

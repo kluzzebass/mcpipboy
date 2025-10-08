@@ -6,27 +6,96 @@ Progress legend: [x] Completed, [>] In progress, [ ] Pending
 Create comprehensive plan for implementing core utility tools that AI agents commonly need.
 
 1. **Tool Requirements Analysis**
-   - [ ] Analyze requirements for UUID generation tools (v1, v4, v5, v7)
-   - [ ] Define IMO number validation and generation requirements
-   - [ ] Specify MMSI number validation and generation requirements
-   - [ ] Plan credit card number validation and generation (Luhn algorithm)
-   - [ ] Design ISBN validation and generation (ISBN-10, ISBN-13)
-   - [ ] Identify additional checksummed identifier types needed
+   - [x] Analyze requirements for UUID generation tools (v1, v4, v5, v7)
+     - UUID v1: Time-based with MAC address, handle privacy concerns
+     - UUID v4: Cryptographically secure random (most common)
+     - UUID v5: Name-based SHA-1 with namespace support (DNS, URL, OID, X.500)
+     - UUID v7: Time-ordered with random component (better for DB indexing)
+     - Validation: Format check, version bits, variant bits verification
+   - [x] Define IMO number validation and generation requirements
+     - Format: 7-digit number (6 digits + 1 check digit)
+     - Check digit: Weighted sum algorithm
+     - Validation: Length, digits only, check digit verification
+     - Generation: 6 random digits + calculated check digit
+   - [x] Specify MMSI number validation and generation requirements
+     - Format: 9-digit number (3-digit country code + 6-digit station ID)
+     - Country codes: 201-775 (maritime nations)
+     - Validation: Length, digits only, country code range check
+     - Generation: Optional country code parameter, random station ID
+   - [x] Plan credit card number validation and generation (Luhn algorithm)
+     - Card types: Visa (4), Mastercard (51-55, 2221-2720), AmEx (34,37), Discover (6011,65,644-649)
+     - Lengths: 13-19 digits (varies by type)
+     - Validation: Luhn algorithm, prefix matching, length verification
+     - Generation: Optional card type, appropriate prefix, Luhn check digit
+   - [x] Design ISBN validation and generation (ISBN-10, ISBN-13)
+     - ISBN-10: 10 digits with weighted sum check digit (0-9 or X)
+     - ISBN-13: 13 digits with EAN-13 check digit algorithm
+     - Validation: Format detection, check digit verification
+     - Generation: Optional format parameter (defaults to ISBN-13)
+   - [x] Identify additional checksummed identifier types needed
+     - EAN-13: 13-digit product barcode with EAN-13 check digit
+     - IBAN: Country code + check digits + account number with MOD-97 algorithm
+     - VIN: 17-character vehicle ID with weighted sum check digit (no I,O,Q)
 
 2. **Architecture Decisions**
-   - [ ] Decide on UUID library (standard library vs external)
+   - [x] Decide on UUID library (standard library vs external)
+     - Decision: Use Go standard library only (crypto/rand, crypto/sha1, time, net)
+     - No external UUID library needed - can implement v1, v4, v5, v7 with stdlib
    - [x] Choose lenient time parsing library (selected: github.com/ijt/go-anytime/v2)
-   - [ ] Plan checksum algorithm implementations
-   - [ ] Design tool parameter validation strategies
-   - [ ] Plan error handling for invalid inputs
-   - [ ] Decide on output formats for generated data
+   - [x] Plan checksum algorithm implementations
+     - Luhn Algorithm: Credit cards - double every 2nd digit, sum, check digit = (10 - sum%10) % 10
+     - Weighted Sum: IMO (7×1+6×2+...), ISBN-10 (10×d1+9×d2+...), VIN (position-based multipliers)
+     - EAN-13: Odd×1 + Even×3, check digit = (10 - sum%10) % 10
+     - MOD-97: IBAN - move first 4 chars to end, replace letters with numbers, remainder = 1
+   - [x] Design tool parameter validation strategies
+     - Use existing ValidateParams method in Tool interface
+     - Parameter types: operation, version, type, format, card-type, country-code, count
+     - Validation at CLI and MCP server levels before tool execution
+     - Descriptive error messages for invalid parameters
+     - Leverage existing ValidateParameters function from interfaces.go
+   - [x] Plan error handling for invalid inputs
+     - Parameter validation errors: Invalid types, missing params, out-of-range values
+     - Format validation errors: Wrong length, invalid characters, malformed input
+     - Algorithm errors: Checksum failures, generation failures
+     - System errors: Random generation failures, network access issues
+     - Use NewErrorResult for consistent error responses with context
+     - Graceful degradation where possible (e.g., random MAC if real MAC unavailable)
+   - [x] Decide on output formats for generated data
+     - Single item: Return generated/validated item directly
+     - Multiple items: Return array when count > 1
+     - Validation results: Boolean + details (valid/invalid, card type, country, etc.)
+     - Consistent structure: Use NewSuccessResult wrapper for all successful responses
+     - Examples: UUID string/array, credit card validation object, MMSI string/array
 
 3. **Implementation Strategy**
-   - [ ] Plan tool implementation order (start with UUID, then checksums)
-   - [ ] Design consistent tool interface patterns
-   - [ ] Plan testing strategy for each tool type
-   - [ ] Design CLI integration for new tools
-   - [ ] Plan documentation updates
+   - [x] Plan tool implementation order (start with UUID, then checksums)
+     - Time Tool → Random Number Generator → UUID → IMO → MMSI → Credit Card → ISBN → EAN-13 → IBAN → VIN → Documentation
+     - Start with foundational utilities (Time, Random), then most common (UUID), then simple checksums, then complex ones
+     - Each tool builds on previous patterns and utilities
+   - [x] Design consistent tool interface patterns
+     - Tool struct pattern: [Name]Tool with New[Name]Tool() constructor
+     - Required methods: Name(), Description(), Execute(), ValidateParams(), GetInputSchema(), GetOutputSchema()
+     - CLI pattern: [name]Cmd with Use, Short, Long, GroupID, Args, RunE
+     - Consistent parameter validation using existing ValidateParameters function
+     - Standard error handling with NewErrorResult and NewSuccessResult
+   - [x] Plan testing strategy for each tool type
+     - Unit tests: internal/tools/[name]_test.go for each tool
+     - CLI tests: cmd/mcpipboy/[name]_test.go for each command
+     - Integration tests: Update internal/server/integration_test.go
+     - Test categories: Valid inputs, invalid inputs, edge cases, error conditions, schema validation
+     - Follow existing test patterns from echo and version tools
+   - [x] Design CLI integration for new tools
+     - Tool registration: Add to getAvailableTools() function in cmd/mcpipboy/serve.go
+     - Command registration: Add to cmd/mcpipboy/main.go in "Tool Commands" group
+     - Flag handling: Use Cobra's built-in validation and completion
+     - Help integration: Automatic help generation and command grouping
+     - Shell completion: Automatic tab completion with Cobra
+   - [x] Plan documentation updates
+     - README.md: Update "Available Tools" section with new tool descriptions
+     - Tool descriptions: Brief descriptions with key parameters and usage examples
+     - CLI examples: Common use cases for each tool
+     - Integration instructions: Update MCP client examples if needed
+     - Keep concise: Avoid detailed API documentation per previous feedback
 
 How to test
 - Review plan completeness and technical feasibility

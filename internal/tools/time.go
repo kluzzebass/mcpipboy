@@ -24,7 +24,7 @@ func (t *TimeTool) Name() string {
 
 // Description returns the tool's description
 func (t *TimeTool) Description() string {
-	return "Comprehensive time utility with parsing, formatting, and calculations. Note: Very ancient dates (around year 0-1) may not be supported due to parsing library limitations."
+	return "Comprehensive time utility with parsing, formatting, and calculations. Note: Dates before year 1000 are not supported due to parsing library limitations."
 }
 
 // Execute runs the time tool
@@ -163,7 +163,7 @@ func (t *TimeTool) GetInputSchema() map[string]interface{} {
 		{
 			Name:        "input",
 			Type:        "string",
-			Description: "Input timestamp (any format supported by go-anytime)",
+			Description: "Input timestamp (any format supported by go-anytime). Note: Dates before year 1000 are not supported.",
 			Required:    false,
 		},
 		{

@@ -43,6 +43,7 @@ func (s *Server) Start(ctx context.Context) error {
 		mcp.AddTool(s.server, &mcp.Tool{
 			Name:        tool.Name(),
 			Description: tool.Description(),
+			InputSchema: tool.GetInputSchema(),
 		}, func(ctx context.Context, request *mcp.CallToolRequest, input map[string]interface{}) (*mcp.CallToolResult, map[string]interface{}, error) {
 			// Execute the tool
 			result, err := tool.Execute(input)

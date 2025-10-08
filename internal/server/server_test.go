@@ -92,6 +92,25 @@ func TestServerStartWithTimeout(t *testing.T) {
 	mockTool := &MockTool{
 		name:        "echo",
 		description: "Echo tool",
+		inputSchema: map[string]interface{}{
+			"type": "object",
+			"properties": map[string]interface{}{
+				"message": map[string]interface{}{
+					"type":        "string",
+					"description": "The message to echo back",
+				},
+			},
+			"required": []string{"message"},
+		},
+		outputSchema: map[string]interface{}{
+			"type": "object",
+			"properties": map[string]interface{}{
+				"result": map[string]interface{}{
+					"type":        "string",
+					"description": "The echoed message",
+				},
+			},
+		},
 		executeFunc: func(params map[string]interface{}) (interface{}, error) {
 			message, ok := params["message"].(string)
 			if !ok {

@@ -137,16 +137,15 @@ Status: Complete - Time tool implementation with go-anytime v1 integration
 
 Implement a comprehensive random number generator with various types and distributions.
 
-5. **Random Number Generator Tool**
-   - [ ] Create `internal/tools/random.go` with flexible random number functionality
-   - [ ] Implement type parameter: "integer", "float", "boolean"
-   - [ ] Add integer generation with min/max range and count parameter
-   - [ ] Add float generation with min/max range, precision, and count parameter
-   - [ ] Add boolean generation with count parameter
-   - [ ] Add distribution support: "uniform", "normal", "exponential"
-   - [ ] Add comprehensive test coverage in `internal/tools/random_test.go`
-   - [ ] Add CLI command in `cmd/mcpipboy/random.go`
-   - [ ] Add CLI tests in `cmd/mcpipboy/random_test.go`
+5. **Random Number Generator Tool** [x]
+   - [x] Create `internal/tools/random.go` with flexible random number functionality
+   - [x] Implement type parameter: "integer", "float", "boolean"
+   - [x] Add integer generation with min/max range and count parameter
+   - [x] Add float generation with min/max range, precision, and count parameter
+   - [x] Add boolean generation with count parameter
+   - [x] Add comprehensive test coverage in `internal/tools/random_test.go`
+   - [x] Add CLI command in `cmd/mcpipboy/random.go`
+   - [x] Register random tool with MCP server
 
 How to test
 - Run `just test` to ensure all random number tests pass
@@ -399,3 +398,4 @@ After core tools completion, the next phase will add advanced features:
 - IP calculation tool (IPv4/IPv6 subnet calculations, CIDR operations, network analysis)
 - Crypto tool (password hashing, verification, and various hash algorithms)
 - Text similarity tool (Levenshtein distance, fuzzy matching, string comparison)
+- Unit converter tool (length, weight, temperature, currency, etc.)

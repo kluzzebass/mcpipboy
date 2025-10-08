@@ -52,7 +52,17 @@ func (t *TimeTool) Execute(params map[string]interface{}) (interface{}, error) {
 		// Use UTC as reference to avoid timezone confusion
 		baseTime, err = anytime.Parse(input, time.Now().UTC())
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse timestamp: %v", err)
+			// Provide helpful hints for common parsing issues
+			errorMsg := fmt.Sprintf("failed to parse timestamp: %v", err)
+
+			// Add hints for common issues
+			if strings.Contains(err.Error(), "expected natural date") {
+				errorMsg += "\n\nHint: If you were trying to parse a year prior to 1000, note that dates before year 1000 are not supported. Otherwise, try using a more standard date format like 'YYYY-MM-DD' or 'January 1, 2025'."
+			} else if strings.Contains(err.Error(), "left unparsed") {
+				errorMsg += "\n\nHint: Try using a more standard date format like 'YYYY-MM-DD' or 'January 1, 2025'."
+			}
+
+			return nil, fmt.Errorf(errorMsg)
 		}
 	} else {
 		// No input provided, use current time

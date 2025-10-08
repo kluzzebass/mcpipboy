@@ -162,27 +162,29 @@ Status: Pending - Random number generator tool implementation
 
 Implement a comprehensive UUID generation and validation tool with version selection.
 
-6. **UUID Tool**
-   - [ ] Create `internal/tools/uuid.go` with flexible UUID functionality
-   - [ ] Implement version parameter: "v1", "v4", "v5", "v7", "validate"
-   - [ ] Add UUID v1 (time-based) generation with MAC address handling and count parameter
-   - [ ] Add UUID v4 (random) generation with count parameter
-   - [ ] Add UUID v5 (name-based SHA-1) generation with namespace and name parameters and count parameter
-   - [ ] Add UUID v7 (time-ordered) generation with count parameter
-   - [ ] Add UUID validation functionality for any version
-   - [ ] Add comprehensive test coverage in `internal/tools/uuid_test.go`
-   - [ ] Add CLI command in `cmd/mcpipboy/uuid.go`
-   - [ ] Add CLI tests in `cmd/mcpipboy/uuid_test.go`
+6. **UUID Tool** [x]
+   - [x] Create `internal/tools/uuid.go` with flexible UUID functionality
+   - [x] Implement version parameter: "v1", "v4", "v5", "v7", "validate"
+   - [x] Add UUID v1 (time-based) generation with MAC address handling and count parameter
+   - [x] Add UUID v4 (random) generation with count parameter
+   - [x] Add UUID v5 (name-based SHA-1) generation with namespace and name parameters and count parameter
+   - [x] Add UUID v7 (time-ordered) generation with count parameter
+   - [x] Add UUID validation functionality for any version
+   - [x] Add enhanced validation with timestamp extraction (v1, v7) and MAC address (v1)
+   - [x] Add comprehensive test coverage in `internal/tools/uuid_test.go`
+   - [x] Add CLI command in `cmd/mcpipboy/uuid.go`
+   - [x] Register UUID tool with MCP server
 
 How to test
 - Run `just test` to ensure all UUID tests pass
 - Test CLI commands: `mcpipboy uuid --version v4`, `mcpipboy uuid --version v7 --count 10`
 - Test validation: `mcpipboy uuid --version validate --input "550e8400-e29b-41d4-a716-446655440000"`
 - Test v5 generation: `mcpipboy uuid --version v5 --namespace "6ba7b810-9dad-11d1-80b4-00c04fd430c8" --name "example"`
+- Test enhanced validation: `mcpipboy uuid --version validate --input "6ba7b810-9dad-11d1-80b4-00c04fd430c8"`
 - Verify MCP integration: tool appears in `tools/list` and executes via `tools/call`
 - Test edge cases: invalid versions, invalid UUIDs, boundary conditions
 
-Status: Pending - UUID tool implementation
+Status: Complete - UUID tool with enhanced validation and metadata extraction
 
 ---
 

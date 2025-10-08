@@ -55,7 +55,7 @@ func init() {
 func runTime(cmd *cobra.Command, args []string) error {
 	// Build parameters map
 	params := make(map[string]interface{})
-	
+
 	if timeType != "" {
 		params["type"] = timeType
 	}
@@ -80,7 +80,7 @@ func runTime(cmd *cobra.Command, args []string) error {
 
 	// Create and execute the tool
 	tool := tools.NewTimeTool()
-	
+
 	// Validate parameters
 	if err := tool.ValidateParams(params); err != nil {
 		return fmt.Errorf("parameter validation failed: %v", err)

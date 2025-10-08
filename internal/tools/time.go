@@ -37,7 +37,7 @@ func (t *TimeTool) Execute(params map[string]interface{}) (interface{}, error) {
 
 	timezone, _ := params["timezone"].(string)
 	if timezone == "" {
-		timezone = "utc"
+		timezone = "local"
 	}
 
 	input, _ := params["input"].(string)
@@ -49,7 +49,8 @@ func (t *TimeTool) Execute(params map[string]interface{}) (interface{}, error) {
 
 	if input != "" {
 		// Parse the input timestamp using go-anytime
-		baseTime, err = anytime.Parse(input, time.Now())
+		// Use UTC as reference to avoid timezone confusion
+		baseTime, err = anytime.Parse(input, time.Now().UTC())
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse timestamp: %v", err)
 		}

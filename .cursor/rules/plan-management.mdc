@@ -17,3 +17,4 @@ alwaysApply: false
 - After each step has been approved, mark it as completed in the plan.
 - If you're uncertain about a step, STOP and ask for clarification.
 - If you encounter steps that seem complex, offer to split it into multiple steps, especially if those steps would make it easier to test.
+- Do NOT use emojis!

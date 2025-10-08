@@ -111,28 +111,27 @@ Status: Planning phase - document creation and requirements analysis
 Implement a comprehensive time utility that AI agents commonly need.
 
 4. **Time Tool**
-   - [x] Research and select lenient time parsing library (selected: github.com/ijt/go-anytime/v2)
+   - [x] Research and select lenient time parsing library (selected: github.com/ijt/go-anytime v1)
    - [x] Add go-anytime library to go.mod dependencies
-   - [ ] Create `internal/tools/time.go` with flexible time functionality
-   - [ ] Implement time type options: "now", "today", "timestamp", "unix", "relative"
-   - [ ] Add format options: "iso", "rfc3339", "unix", "date", "datetime", "time"
-   - [ ] Add timezone support: "utc", "local", or specified timezone
-   - [ ] Add relative time calculations: from any timestamp to any timestamp
-   - [ ] Add offset support: relative time calculations from input timestamp (+1h, -2d, etc.)
-   - [ ] Add comprehensive test coverage in `internal/tools/time_test.go`
-   - [ ] Add CLI command in `cmd/mcpipboy/time.go`
-   - [ ] Add CLI tests in `cmd/mcpipboy/time_test.go`
+   - [x] Create `internal/tools/time.go` with flexible time functionality
+   - [x] Implement simplified API: input parsing with go-anytime, output formatting with our logic
+   - [x] Add format options: "iso", "rfc3339", "unix", "date", "datetime", "time"
+   - [x] Add timezone support: "utc", "local", or specified timezone
+   - [x] Add offset support: relative time calculations from input timestamp (+1h, -2d, etc.)
+   - [x] Add comprehensive test coverage in `internal/tools/time_test.go`
+   - [x] Add CLI command in `cmd/mcpipboy/time.go`
+   - [x] Add CLI tests in `cmd/mcpipboy/time_test.go`
 
 How to test
 - Run `just test` to ensure all time tests pass
-- Test CLI commands: `mcpipboy time`, `mcpipboy time --type today`, `mcpipboy time --format unix`
-- Test relative calculations: `mcpipboy time --type relative --from "2025-01-01" --to "2025-12-31"`
-- Test offset calculations: `mcpipboy time --type timestamp --input "2025-01-01" --offset "+1h"`
+- Test CLI commands: `mcpipboy time`, `mcpipboy time --input "2025-01-01" --format unix`
+- Test offset calculations: `mcpipboy time --input "2025-01-01" --offset "+1h"`
+- Test timezone conversion: `mcpipboy time --input "2025-01-01T12:00:00Z" --timezone "America/New_York"`
 - Verify MCP integration: tool appears in `tools/list` and executes via `tools/call`
-- Test different combinations: type + format + timezone + offset/relative calculations
+- Test different combinations: input + format + timezone + offset
 - Verify output accuracy and consistency across different options
 
-Status: Pending - Time tool implementation
+Status: Complete - Time tool implementation with go-anytime v1 integration
 
 ---
 

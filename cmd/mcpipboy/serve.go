@@ -59,6 +59,7 @@ func getAvailableTools() *tools.ToolRegistry {
 	registry.RegisterTool(tools.NewIMOTool())
 	registry.RegisterTool(tools.NewMMSITool())
 	registry.RegisterTool(tools.NewCreditCardTool())
+	registry.RegisterTool(tools.NewISBNTool())
 	// TODO: Add more tools as they are implemented
 
 	return registry

@@ -265,15 +265,15 @@ Status: Complete - Credit card tool with Luhn algorithm validation and generatio
 Implement International Standard Book Number (ISBN) validation and generation with format support.
 
 10. **ISBN Tool**
-   - [ ] Create `internal/tools/isbn.go` with flexible ISBN functionality
-   - [ ] Implement operation parameter: "validate", "generate"
-   - [ ] Add ISBN validation with format parameter: "isbn10", "isbn13", "auto"
-   - [ ] Add ISBN generation with optional format parameter (defaults to ISBN-13) and count parameter
-   - [ ] Implement ISBN-10 checksum algorithm
-   - [ ] Implement ISBN-13 checksum algorithm
-   - [ ] Add comprehensive test coverage in `internal/tools/isbn_test.go`
-   - [ ] Add CLI command in `cmd/mcpipboy/isbn.go`
-   - [ ] Add CLI tests in `cmd/mcpipboy/isbn_test.go`
+   - [x] Create `internal/tools/isbn.go` with flexible ISBN functionality
+   - [x] Implement operation parameter: "validate", "generate"
+   - [x] Add ISBN validation with format parameter: "isbn10", "isbn13", "auto"
+   - [x] Add ISBN generation with optional format parameter (defaults to ISBN-13) and count parameter
+   - [x] Implement ISBN-10 checksum algorithm
+   - [x] Implement ISBN-13 checksum algorithm
+   - [x] Add comprehensive test coverage in `internal/tools/isbn_test.go`
+   - [x] Add CLI command in `cmd/mcpipboy/isbn.go`
+   - [x] Add CLI tests in `cmd/mcpipboy/isbn_test.go`
 
 How to test
 - Run `just test` to ensure all ISBN tests pass
@@ -284,7 +284,7 @@ How to test
 - Verify MCP integration: tool appears in `tools/list` and executes via `tools/call`
 - Test with known valid/invalid ISBN numbers and format conversions
 
-Status: Pending - ISBN tool implementation
+Status: Complete - ISBN tool implementation with comprehensive validation, generation, and resource system
 
 ---
 

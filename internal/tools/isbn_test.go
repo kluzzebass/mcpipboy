@@ -42,7 +42,7 @@ func TestISBNToolExecute(t *testing.T) {
 			name: "validate_valid_isbn13",
 			params: map[string]interface{}{
 				"operation": "validate",
-				"input":     "978-0-123456-78-9",
+				"input":     "978-0-123456-78-6",
 				"format":    "isbn13",
 			},
 			wantErr: false,
@@ -66,7 +66,7 @@ func TestISBNToolExecute(t *testing.T) {
 			name: "validate_isbn10_with_x",
 			params: map[string]interface{}{
 				"operation": "validate",
-				"input":     "0-123456-78-X",
+				"input":     "100000001X",
 				"format":    "isbn10",
 			},
 			wantErr: false,
@@ -108,7 +108,7 @@ func TestISBNToolExecute(t *testing.T) {
 			name: "validate_auto_detection_isbn13",
 			params: map[string]interface{}{
 				"operation": "validate",
-				"input":     "9780123456789",
+				"input":     "9780123456786",
 				"format":    "auto",
 			},
 			wantErr: false,

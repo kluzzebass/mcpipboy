@@ -524,13 +524,3 @@ func (i *ISBNTool) generateISBN13() (string, error) {
 
 	return isbn, nil
 }
-
-// contains checks if a slice contains a string
-func contains(slice []string, item string) bool {
-	for _, s := range slice {
-		if s == item {
-			return true
-		}
-	}
-	return false
-}

@@ -1,5 +1,7 @@
 ## Testing Improvements Plan (Testable CLI Commands with Proper Output Handling)
 
+**Date:** 2025-10-09
+
 Progress legend: [x] Completed, [>] In progress, [ ] Pending
 
 ### [x] 0) Planning document and alignment

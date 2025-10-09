@@ -1,5 +1,7 @@
 # mcpipboy MVP Development Plan
 
+**Date:** 2025-10-07
+
 ## Purpose
 Create a stdin/stdout MCP (Model Context Protocol) server that provides agentic AIs with essential tools for common tasks they struggle with, including UUID generation, checksummed identifier verification/generation (IMO, MMSI, credit card numbers, ISBN, etc.), and other utility functions.
 

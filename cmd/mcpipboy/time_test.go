@@ -98,11 +98,11 @@ func TestTimeCommandHelp(t *testing.T) {
 	if timeCmd.Short == "" {
 		t.Error("Time command should have a short description")
 	}
-	
+
 	if timeCmd.Long == "" {
 		t.Error("Time command should have a long description")
 	}
-	
+
 	if timeCmd.Use == "" {
 		t.Error("Time command should have usage text")
 	}

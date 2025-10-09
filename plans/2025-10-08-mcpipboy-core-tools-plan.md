@@ -223,7 +223,7 @@ Implement Maritime Mobile Service Identity (MMSI) number validation and generati
    - [x] Add comprehensive test coverage in `internal/tools/mmsi_test.go`
    - [x] Add CLI command in `cmd/mcpipboy/mmsi.go`
    - [x] **Enhanced with type-specific generation** - Added 16 supported MMSI types (ship, sar-aircraft, us-federal, etc.) with dedicated generation functions and CLI `--type` parameter
-   - [ ] Add CLI tests in `cmd/mcpipboy/mmsi_test.go`
+   - [x] Add CLI tests in `cmd/mcpipboy/mmsi_test.go`
 
 How to test
 - Run `just test` to ensure all MMSI tests pass
@@ -233,21 +233,22 @@ How to test
 - Verify MCP integration: tool appears in `tools/list` and executes via `tools/call`
 - Test with known valid/invalid MMSI numbers and country codes
 
-Status: Pending - MMSI tool implementation
+Status: Complete - MMSI tool with comprehensive type-specific generation and validation
 
 ---
 
 Implement credit card number validation and generation using Luhn algorithm with card type support.
 
 9. **Credit Card Tool**
-   - [ ] Create `internal/tools/creditcard.go` with flexible credit card functionality
-   - [ ] Implement operation parameter: "validate", "generate"
-   - [ ] Add credit card validation with Luhn algorithm and card type detection
-   - [ ] Add credit card generation with optional card type parameter (Visa, Mastercard, Amex, etc.) and count parameter
-   - [ ] Implement Luhn algorithm for check digit calculation
-   - [ ] Add comprehensive test coverage in `internal/tools/creditcard_test.go`
-   - [ ] Add CLI command in `cmd/mcpipboy/creditcard.go`
-   - [ ] Add CLI tests in `cmd/mcpipboy/creditcard_test.go`
+   - [x] Create `internal/tools/creditcard.go` with flexible credit card functionality
+   - [x] Implement operation parameter: "validate", "generate"
+   - [x] Add credit card validation with Luhn algorithm and card type detection
+   - [x] Add credit card generation with optional card type parameter (Visa, Mastercard, Amex, etc.) and count parameter
+   - [x] Implement Luhn algorithm for check digit calculation
+   - [x] Add comprehensive test coverage in `internal/tools/creditcard_test.go`
+   - [x] Add CLI command in `cmd/mcpipboy/creditcard.go`
+   - [x] Add CLI tests in `cmd/mcpipboy/creditcard_test.go`
+   - [x] Register credit card tool with MCP server
 
 How to test
 - Run `just test` to ensure all credit card tests pass
@@ -257,7 +258,7 @@ How to test
 - Verify MCP integration: tool appears in `tools/list` and executes via `tools/call`
 - Test with known valid/invalid credit card numbers and different card types
 
-Status: Pending - Credit card tool implementation
+Status: Complete - Credit card tool with Luhn algorithm validation and generation
 
 ---
 

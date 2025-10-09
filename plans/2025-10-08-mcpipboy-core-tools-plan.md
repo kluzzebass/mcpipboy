@@ -313,13 +313,13 @@ Status: Complete - EAN-13 tool implementation with comprehensive validation, gen
 Implement International Bank Account Number (IBAN) validation and generation.
 
 12. **IBAN Tool**
-   - [ ] Create `internal/tools/iban.go` with flexible IBAN functionality
-   - [ ] Implement operation parameter: "validate", "generate"
-   - [ ] Add IBAN validation with MOD-97 checksum algorithm
-   - [ ] Add IBAN generation with optional country code parameter and count parameter
-   - [ ] Add comprehensive test coverage in `internal/tools/iban_test.go`
-   - [ ] Add CLI command in `cmd/mcpipboy/iban.go`
-   - [ ] Add CLI tests in `cmd/mcpipboy/iban_test.go`
+   - [x] Create `internal/tools/iban.go` with flexible IBAN functionality
+   - [x] Implement operation parameter: "validate", "generate"
+   - [x] Add IBAN validation with MOD-97 checksum algorithm
+   - [x] Add IBAN generation with optional country code parameter and count parameter
+   - [x] Add comprehensive test coverage in `internal/tools/iban_test.go`
+   - [x] Add CLI command in `cmd/mcpipboy/iban.go`
+   - [x] Add CLI tests in `cmd/mcpipboy/iban_test.go`
 
 How to test
 - Run `just test` to ensure all IBAN tests pass
@@ -329,7 +329,7 @@ How to test
 - Verify MCP integration: tool appears in `tools/list` and executes via `tools/call`
 - Test with known valid/invalid IBAN numbers and country codes
 
-Status: Pending - IBAN tool implementation
+Status: Complete - IBAN tool implementation with MOD-97 algorithm validation and generation
 
 ---
 

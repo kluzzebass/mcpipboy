@@ -6,9 +6,6 @@ import (
 
 	version "github.com/kluzzebass/mcpipboy"
 	"github.com/spf13/cobra"
-
-	// Import all command files to ensure their init() functions run
-	_ "github.com/kluzzebass/mcpipboy/cmd/mcpipboy"
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -17,7 +14,7 @@ var rootCmd = &cobra.Command{
 	Short: "MCP server for AI agent utility tools",
 	Long: `Flawlessly generated, rigorously validated - dependable data for the digital wasteland.
 
-mcpipboy is an MCP (Model Context Protocol) server that provides agentic AIs 
+MCPip-Boy is an MCP (Model Context Protocol) server that provides agentic AIs 
 with essential tools for common tasks they struggle with, including UUID generation, 
 checksummed identifier verification/generation (IMO, MMSI, credit card numbers, ISBN, etc.), 
 and other utility functions.`,

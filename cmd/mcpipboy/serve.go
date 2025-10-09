@@ -61,6 +61,7 @@ func getAvailableTools() *tools.ToolRegistry {
 	registry.RegisterTool(tools.NewCreditCardTool())
 	registry.RegisterTool(tools.NewISBNTool())
 	registry.RegisterTool(tools.NewEAN13Tool())
+	registry.RegisterTool(tools.NewIBANTool())
 	// TODO: Add more tools as they are implemented
 
 	return registry

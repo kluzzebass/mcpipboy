@@ -524,3 +524,56 @@ func TestMMSIToolValidateWithType(t *testing.T) {
 		t.Errorf("Expected type 'AIS-SART', got '%s'", validationResult["type"])
 	}
 }
+
+func TestMMSIToolResources(t *testing.T) {
+	tool := NewMMSITool()
+
+	// Test GetResources
+	resources := tool.GetResources()
+	if len(resources) != 2 {
+		t.Errorf("Expected 2 resources, got %d", len(resources))
+	}
+
+	// Test resource names and URIs
+	expectedResources := map[string]string{
+		"MMSI Types":         "mmsi://types",
+		"MMSI Country Codes": "mmsi://countries",
+	}
+
+	for _, resource := range resources {
+		expectedURI, exists := expectedResources[resource.Name]
+		if !exists {
+			t.Errorf("Unexpected resource name: %s", resource.Name)
+		}
+		if resource.URI != expectedURI {
+			t.Errorf("Expected URI %s, got %s", expectedURI, resource.URI)
+		}
+		if resource.MIMEType != "application/json" {
+			t.Errorf("Expected MIME type 'application/json', got %s", resource.MIMEType)
+		}
+	}
+
+	// Test ReadResource for types
+	typesContent, err := tool.ReadResource("mmsi://types")
+	if err != nil {
+		t.Errorf("ReadResource(mmsi://types) failed: %v", err)
+	}
+	if typesContent == "" {
+		t.Error("ReadResource(mmsi://types) returned empty content")
+	}
+
+	// Test ReadResource for countries
+	countriesContent, err := tool.ReadResource("mmsi://countries")
+	if err != nil {
+		t.Errorf("ReadResource(mmsi://countries) failed: %v", err)
+	}
+	if countriesContent == "" {
+		t.Error("ReadResource(mmsi://countries) returned empty content")
+	}
+
+	// Test ReadResource with unknown URI
+	_, err = tool.ReadResource("mmsi://unknown")
+	if err == nil {
+		t.Error("ReadResource with unknown URI should return error")
+	}
+}

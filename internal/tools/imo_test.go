@@ -328,3 +328,56 @@ func TestIMOToolSchema(t *testing.T) {
 		t.Error("Output schema should have type 'object'")
 	}
 }
+
+func TestIMOToolResources(t *testing.T) {
+	tool := NewIMOTool()
+
+	// Test GetResources
+	resources := tool.GetResources()
+	if len(resources) != 2 {
+		t.Errorf("Expected 2 resources, got %d", len(resources))
+	}
+
+	// Test resource names and URIs
+	expectedResources := map[string]string{
+		"IMO Algorithm": "imo://algorithm",
+		"IMO Examples":  "imo://examples",
+	}
+
+	for _, resource := range resources {
+		expectedURI, exists := expectedResources[resource.Name]
+		if !exists {
+			t.Errorf("Unexpected resource name: %s", resource.Name)
+		}
+		if resource.URI != expectedURI {
+			t.Errorf("Expected URI %s, got %s", expectedURI, resource.URI)
+		}
+		if resource.MIMEType != "application/json" {
+			t.Errorf("Expected MIME type 'application/json', got %s", resource.MIMEType)
+		}
+	}
+
+	// Test ReadResource for algorithm
+	algorithmContent, err := tool.ReadResource("imo://algorithm")
+	if err != nil {
+		t.Errorf("ReadResource(imo://algorithm) failed: %v", err)
+	}
+	if algorithmContent == "" {
+		t.Error("ReadResource(imo://algorithm) returned empty content")
+	}
+
+	// Test ReadResource for examples
+	examplesContent, err := tool.ReadResource("imo://examples")
+	if err != nil {
+		t.Errorf("ReadResource(imo://examples) failed: %v", err)
+	}
+	if examplesContent == "" {
+		t.Error("ReadResource(imo://examples) returned empty content")
+	}
+
+	// Test ReadResource with unknown URI
+	_, err = tool.ReadResource("imo://unknown")
+	if err == nil {
+		t.Error("ReadResource with unknown URI should return error")
+	}
+}

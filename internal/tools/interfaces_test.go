@@ -54,6 +54,46 @@ func (m *MockTool) ReadResource(uri string) (string, error) {
 	return "", fmt.Errorf("no resources available for mock tool")
 }
 
+func TestToolResources(t *testing.T) {
+	// Test that tools implement resource interface
+	tools := []Tool{
+		NewEchoTool(),
+		NewVersionTool(),
+		NewTimeTool(),
+		NewRandomTool(),
+		NewUUIDTool(),
+		NewIMOTool(),
+		NewMMSITool(),
+	}
+
+	for _, tool := range tools {
+		t.Run(tool.Name(), func(t *testing.T) {
+			// Test GetResources doesn't panic
+			resources := tool.GetResources()
+			if resources == nil {
+				t.Error("GetResources() should not return nil")
+			}
+
+			// Test ReadResource for each resource
+			for _, resource := range resources {
+				content, err := tool.ReadResource(resource.URI)
+				if err != nil {
+					t.Errorf("ReadResource(%s) failed: %v", resource.URI, err)
+				}
+				if content == "" {
+					t.Errorf("ReadResource(%s) returned empty content", resource.URI)
+				}
+			}
+
+			// Test ReadResource with unknown URI
+			_, err := tool.ReadResource("unknown://uri")
+			if err == nil {
+				t.Error("ReadResource with unknown URI should return error")
+			}
+		})
+	}
+}
+
 func TestToolRegistry(t *testing.T) {
 	registry := NewToolRegistry()
 

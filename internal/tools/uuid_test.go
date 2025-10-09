@@ -594,3 +594,66 @@ func TestUUIDToolV7Format(t *testing.T) {
 		t.Errorf("Expected string result, got %T", result)
 	}
 }
+
+func TestUUIDToolResources(t *testing.T) {
+	tool := NewUUIDTool()
+
+	// Test GetResources
+	resources := tool.GetResources()
+	if len(resources) != 3 {
+		t.Errorf("Expected 3 resources, got %d", len(resources))
+	}
+
+	// Test resource names and URIs
+	expectedResources := map[string]string{
+		"UUID Versions":   "uuid://versions",
+		"UUID Namespaces": "uuid://namespaces",
+		"UUID Examples":   "uuid://examples",
+	}
+
+	for _, resource := range resources {
+		expectedURI, exists := expectedResources[resource.Name]
+		if !exists {
+			t.Errorf("Unexpected resource name: %s", resource.Name)
+		}
+		if resource.URI != expectedURI {
+			t.Errorf("Expected URI %s, got %s", expectedURI, resource.URI)
+		}
+		if resource.MIMEType != "application/json" {
+			t.Errorf("Expected MIME type 'application/json', got %s", resource.MIMEType)
+		}
+	}
+
+	// Test ReadResource for versions
+	versionsContent, err := tool.ReadResource("uuid://versions")
+	if err != nil {
+		t.Errorf("ReadResource(uuid://versions) failed: %v", err)
+	}
+	if versionsContent == "" {
+		t.Error("ReadResource(uuid://versions) returned empty content")
+	}
+
+	// Test ReadResource for namespaces
+	namespacesContent, err := tool.ReadResource("uuid://namespaces")
+	if err != nil {
+		t.Errorf("ReadResource(uuid://namespaces) failed: %v", err)
+	}
+	if namespacesContent == "" {
+		t.Error("ReadResource(uuid://namespaces) returned empty content")
+	}
+
+	// Test ReadResource for examples
+	examplesContent, err := tool.ReadResource("uuid://examples")
+	if err != nil {
+		t.Errorf("ReadResource(uuid://examples) failed: %v", err)
+	}
+	if examplesContent == "" {
+		t.Error("ReadResource(uuid://examples) returned empty content")
+	}
+
+	// Test ReadResource with unknown URI
+	_, err = tool.ReadResource("uuid://unknown")
+	if err == nil {
+		t.Error("ReadResource with unknown URI should return error")
+	}
+}

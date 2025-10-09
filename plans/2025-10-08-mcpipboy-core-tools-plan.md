@@ -291,13 +291,13 @@ Status: Complete - ISBN tool implementation with comprehensive validation, gener
 Implement European Article Number (EAN-13) validation and generation.
 
 11. **EAN-13 Tool**
-   - [ ] Create `internal/tools/ean13.go` with flexible EAN-13 functionality
-   - [ ] Implement operation parameter: "validate", "generate"
-   - [ ] Add EAN-13 validation with checksum algorithm
-   - [ ] Add EAN-13 generation with valid checksum and count parameter
-   - [ ] Add comprehensive test coverage in `internal/tools/ean13_test.go`
-   - [ ] Add CLI command in `cmd/mcpipboy/ean13.go`
-   - [ ] Add CLI tests in `cmd/mcpipboy/ean13_test.go`
+   - [x] Create `internal/tools/ean13.go` with flexible EAN-13 functionality
+   - [x] Implement operation parameter: "validate", "generate"
+   - [x] Add EAN-13 validation with checksum algorithm
+   - [x] Add EAN-13 generation with valid checksum and count parameter
+   - [x] Add comprehensive test coverage in `internal/tools/ean13_test.go`
+   - [x] Add CLI command in `cmd/mcpipboy/ean13.go`
+   - [x] Add CLI tests in `cmd/mcpipboy/ean13_test.go`
 
 How to test
 - Run `just test` to ensure all EAN-13 tests pass
@@ -306,7 +306,7 @@ How to test
 - Verify MCP integration: tool appears in `tools/list` and executes via `tools/call`
 - Test with known valid/invalid EAN-13 numbers
 
-Status: Pending - EAN-13 tool implementation
+Status: Complete - EAN-13 tool implementation with comprehensive validation, generation, and resource system
 
 ---
 

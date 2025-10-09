@@ -6,6 +6,9 @@ import (
 
 	version "github.com/kluzzebass/mcpipboy"
 	"github.com/spf13/cobra"
+
+	// Import all command files to ensure their init() functions run
+	_ "github.com/kluzzebass/mcpipboy/cmd/mcpipboy"
 )
 
 // rootCmd represents the base command when called without any subcommands

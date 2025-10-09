@@ -25,11 +25,11 @@ build-release:
 # Create GitHub release
 release:
     @echo "Creating GitHub release..."
-    @current_version=$$(cat VERSION) && \
-    echo "Creating release v$$current_version" && \
-    gh release create "v$$current_version" \
-        --title "mcpipboy v$$current_version" \
-        --notes "Release v$$current_version of mcpipboy - MCP server for AI agents" \
+    @version=$(cat VERSION) && \
+    echo "Creating release v$version" && \
+    gh release create "v$version" \
+        --title "mcpipboy v$version" \
+        --notes "Release v$version of mcpipboy - MCP server for AI agents" \
         dist/mcpipboy-linux-amd64 \
         dist/mcpipboy-linux-arm64 \
         dist/mcpipboy-darwin-amd64 \

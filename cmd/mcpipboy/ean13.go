@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"io"
+	"os"
 
 	"github.com/kluzzebass/mcpipboy/internal/tools"
 	"github.com/spf13/cobra"
@@ -31,7 +33,9 @@ Examples:
 
   # Generate multiple EAN-13s
   mcpipboy ean13 --operation generate --count 5`,
-	RunE: runEAN13,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return runEAN13(cmd, args, os.Stdout)
+	},
 }
 
 func init() {
@@ -46,7 +50,7 @@ func init() {
 	ean13Cmd.GroupID = "tools"
 }
 
-func runEAN13(cmd *cobra.Command, args []string) error {
+func runEAN13(cmd *cobra.Command, args []string, out io.Writer) error {
 	// Create the EAN-13 tool
 	tool := tools.NewEAN13Tool()
 
@@ -77,40 +81,40 @@ func runEAN13(cmd *cobra.Command, args []string) error {
 		if resultMap, ok := result.(map[string]interface{}); ok {
 			if valid, ok := resultMap["valid"].(bool); ok {
 				if valid {
-					fmt.Printf("Valid EAN-13: %s\n", resultMap["ean13"])
+					fmt.Fprintf(out, "Valid EAN-13: %s\n", resultMap["ean13"])
 				} else {
-					fmt.Printf("Invalid EAN-13: %s\n", resultMap["error"])
+					fmt.Fprintf(out, "Invalid EAN-13: %s\n", resultMap["error"])
 					if input, ok := resultMap["input"].(string); ok {
-						fmt.Printf("   Input: %s\n", input)
+						fmt.Fprintf(out, "   Input: %s\n", input)
 					}
 				}
 			} else {
-				fmt.Printf("EAN-13 validation result: %v\n", result)
+				fmt.Fprintf(out, "EAN-13 validation result: %v\n", result)
 			}
 		} else {
-			fmt.Printf("EAN-13 validation result: %v\n", result)
+			fmt.Fprintf(out, "EAN-13 validation result: %v\n", result)
 		}
 	} else if ean13Operation == "generate" {
 		if ean13Count == 1 {
 			// Single EAN-13
 			if ean13, ok := result.(string); ok {
-				fmt.Printf("Generated EAN-13: %s\n", ean13)
+				fmt.Fprintf(out, "Generated EAN-13: %s\n", ean13)
 			} else {
-				fmt.Printf("Generated EAN-13: %v\n", result)
+				fmt.Fprintf(out, "Generated EAN-13: %v\n", result)
 			}
 		} else {
 			// Multiple EAN-13s
 			if ean13s, ok := result.([]string); ok {
-				fmt.Printf("Generated %d EAN-13s:\n", len(ean13s))
+				fmt.Fprintf(out, "Generated %d EAN-13s:\n", len(ean13s))
 				for i, ean13 := range ean13s {
-					fmt.Printf("  %d. %s\n", i+1, ean13)
+					fmt.Fprintf(out, "  %d. %s\n", i+1, ean13)
 				}
 			} else {
-				fmt.Printf("Generated EAN-13s: %v\n", result)
+				fmt.Fprintf(out, "Generated EAN-13s: %v\n", result)
 			}
 		}
 	} else {
-		fmt.Printf("EAN-13 result: %v\n", result)
+		fmt.Fprintf(out, "EAN-13 result: %v\n", result)
 	}
 
 	return nil

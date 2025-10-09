@@ -1,6 +1,9 @@
 package main
 
 import (
+	"bytes"
+	"os/exec"
+	"strings"
 	"testing"
 )
 
@@ -105,48 +108,27 @@ func TestRunIBAN(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Reset global variables
-			ibanOperation = ""
-			ibanInput = ""
-			ibanCountryCode = ""
-			ibanCount = 1
-
-			// Parse the test args to set global variables
-			for i := 0; i < len(tt.args); i += 2 {
-				if i+1 < len(tt.args) {
-					switch tt.args[i] {
-					case "--operation":
-						ibanOperation = tt.args[i+1]
-					case "--input":
-						ibanInput = tt.args[i+1]
-					case "--country-code":
-						ibanCountryCode = tt.args[i+1]
-					case "--count":
-						// Parse count as int
-						if tt.args[i+1] == "0" {
-							ibanCount = 0
-						} else if tt.args[i+1] == "3" {
-							ibanCount = 3
-						} else if tt.args[i+1] == "101" {
-							ibanCount = 101
-						}
-					}
-				}
-			}
-
-			// Execute the runIBAN function directly
-			err := runIBAN(nil, nil)
+			// Execute the CLI via go run
+			args := append([]string{"run", ".", "iban"}, tt.args...)
+			cmd := exec.Command("go", args...)
+			output, err := cmd.CombinedOutput()
 
 			if tt.hasError {
 				if err == nil {
-					t.Error("Expected error, got none")
+					t.Errorf("Expected error but command succeeded. Output: %s", string(output))
 				}
 				return
 			}
 
 			if err != nil {
-				t.Errorf("Unexpected error: %v", err)
+				t.Errorf("Unexpected error: %v\nOutput: %s", err, string(output))
 				return
+			}
+
+			// Optionally check that output is not empty
+			outputStr := strings.TrimSpace(string(output))
+			if len(outputStr) == 0 {
+				t.Error("Expected non-empty output")
 			}
 		})
 	}
@@ -207,5 +189,84 @@ func TestIBANCmd_Use(t *testing.T) {
 	// Test that the command use is correct
 	if cmd.Use != "iban" {
 		t.Errorf("Expected Use to be 'iban', got '%s'", cmd.Use)
+	}
+}
+
+// TestRunIBANUnit tests the runIBAN function directly with buffer (for coverage)
+func TestRunIBANUnit(t *testing.T) {
+	tests := []struct {
+		name           string
+		operation      string
+		input          string
+		countryCode    string
+		count          int
+		expectedOutput string
+		expectError    bool
+	}{
+		{
+			name:           "validate valid UK IBAN",
+			operation:      "validate",
+			input:          "GB82WEST12345698765432",
+			expectedOutput: "Valid IBAN: GB82WEST12345698765432",
+			expectError:    false,
+		},
+		{
+			name:           "validate invalid IBAN",
+			operation:      "validate",
+			input:          "GB82WEST12345698765433",
+			expectedOutput: "Invalid IBAN",
+			expectError:    false,
+		},
+		{
+			name:        "generate single IBAN",
+			operation:   "generate",
+			countryCode: "GB",
+			count:       1,
+			expectError: false,
+		},
+		{
+			name:        "validate without input",
+			operation:   "validate",
+			expectError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Reset global variables
+			ibanOperation = tt.operation
+			ibanInput = tt.input
+			ibanCountryCode = tt.countryCode
+			ibanCount = tt.count
+			if ibanCount == 0 {
+				ibanCount = 1
+			}
+
+			// Create a buffer to capture output
+			var buf bytes.Buffer
+
+			// Call runIBAN directly
+			err := runIBAN(nil, nil, &buf)
+
+			if tt.expectError {
+				if err == nil {
+					t.Error("Expected error but got none")
+				}
+				return
+			}
+
+			if err != nil {
+				t.Errorf("Unexpected error: %v", err)
+				return
+			}
+
+			// Check the output if expected output is specified
+			if tt.expectedOutput != "" {
+				output := buf.String()
+				if !strings.Contains(output, tt.expectedOutput) {
+					t.Errorf("Expected output to contain %q, got %q", tt.expectedOutput, output)
+				}
+			}
+		})
 	}
 }

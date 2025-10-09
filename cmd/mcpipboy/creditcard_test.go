@@ -1,6 +1,9 @@
 package main
 
 import (
+	"bytes"
+	"os/exec"
+	"strings"
 	"testing"
 )
 
@@ -81,26 +84,27 @@ func TestRunCreditCard(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Reset flags
-			creditCardOperation = "validate"
-			creditCardInput = ""
-			creditCardType = ""
-			creditCardCount = 1
-
-			// Parse flags
-			creditCardCmd.ParseFlags(tt.args)
-
-			// Test the runCreditCard function
-			err := runCreditCard(creditCardCmd, []string{})
+			// Execute the CLI via go run
+			args := append([]string{"run", ".", "creditcard"}, tt.args...)
+			cmd := exec.Command("go", args...)
+			output, err := cmd.CombinedOutput()
 
 			if tt.hasError {
 				if err == nil {
-					t.Errorf("Expected error but got none")
+					t.Errorf("Expected error but command succeeded. Output: %s", string(output))
 				}
-			} else {
-				if err != nil {
-					t.Errorf("Unexpected error: %v", err)
-				}
+				return
+			}
+
+			if err != nil {
+				t.Errorf("Unexpected error: %v\nOutput: %s", err, string(output))
+				return
+			}
+
+			// Check that output is not empty
+			outputStr := strings.TrimSpace(string(output))
+			if len(outputStr) == 0 {
+				t.Error("Expected non-empty output")
 			}
 		})
 	}
@@ -139,5 +143,80 @@ func TestCreditCardCmdGroup(t *testing.T) {
 	// Test that command is in the tools group
 	if creditCardCmd.GroupID != "tools" {
 		t.Errorf("Expected group ID 'tools', got '%s'", creditCardCmd.GroupID)
+	}
+}
+
+// TestRunCreditCardUnit tests the runCreditCard function directly with buffer (for coverage)
+func TestRunCreditCardUnit(t *testing.T) {
+	tests := []struct {
+		name        string
+		operation   string
+		input       string
+		cardType    string
+		count       int
+		expectError bool
+	}{
+		{
+			name:        "validate valid visa",
+			operation:   "validate",
+			input:       "4532015112830366",
+			expectError: false,
+		},
+		{
+			name:        "validate invalid card",
+			operation:   "validate",
+			input:       "4532015112830367",
+			expectError: false,
+		},
+		{
+			name:        "generate single card",
+			operation:   "generate",
+			cardType:    "visa",
+			count:       1,
+			expectError: false,
+		},
+		{
+			name:        "generate multiple cards",
+			operation:   "generate",
+			count:       3,
+			expectError: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Reset and set global variables
+			creditCardOperation = tt.operation
+			creditCardInput = tt.input
+			creditCardType = tt.cardType
+			creditCardCount = tt.count
+			if creditCardCount == 0 {
+				creditCardCount = 1
+			}
+
+			// Create a buffer to capture output
+			var buf bytes.Buffer
+
+			// Call runCreditCard directly
+			err := runCreditCard(nil, nil, &buf)
+
+			if tt.expectError {
+				if err == nil {
+					t.Error("Expected error but got none")
+				}
+				return
+			}
+
+			if err != nil {
+				t.Errorf("Unexpected error: %v", err)
+				return
+			}
+
+			// Check that output is not empty
+			output := buf.String()
+			if len(strings.TrimSpace(output)) == 0 {
+				t.Error("Expected non-empty output")
+			}
+		})
 	}
 }

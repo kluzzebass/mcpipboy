@@ -2,43 +2,117 @@
 package main
 
 import (
+	"bytes"
+	"os/exec"
+	"strings"
 	"testing"
 )
 
 func TestEchoCommand(t *testing.T) {
-	// Test that echo command is properly configured
-	if echoCmd.Use != "echo [message]" {
-		t.Errorf("Expected echo command use to be 'echo [message]', got '%s'", echoCmd.Use)
+	tests := []struct {
+		name           string
+		args           []string
+		expectedOutput string
+		expectError    bool
+	}{
+		{
+			name:           "echo simple message",
+			args:           []string{"echo", "test message"},
+			expectedOutput: "test message",
+			expectError:    false,
+		},
+		{
+			name:           "echo with special characters",
+			args:           []string{"echo", "Hello, World!"},
+			expectedOutput: "Hello, World!",
+			expectError:    false,
+		},
+		{
+			name:        "echo with no arguments",
+			args:        []string{"echo"},
+			expectError: true,
+		},
+		{
+			name:        "echo with multiple arguments",
+			args:        []string{"echo", "arg1", "arg2"},
+			expectError: true,
+		},
 	}
 
-	if echoCmd.Short == "" {
-		t.Error("Echo command should have a short description")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Execute the CLI via go run
+			args := append([]string{"run", "."}, tt.args...)
+			cmd := exec.Command("go", args...)
+			output, err := cmd.CombinedOutput()
+
+			if tt.expectError {
+				if err == nil {
+					t.Errorf("Expected error but command succeeded")
+				}
+				return
+			}
+
+			if err != nil {
+				t.Errorf("Unexpected error: %v\nOutput: %s", err, string(output))
+				return
+			}
+
+			outputStr := strings.TrimSpace(string(output))
+			if !strings.Contains(outputStr, tt.expectedOutput) {
+				t.Errorf("Expected output to contain %q, got %q", tt.expectedOutput, outputStr)
+			}
+		})
 	}
 }
 
+// TestRunEcho tests the runEcho function directly with buffer (for coverage)
 func TestRunEcho(t *testing.T) {
-	// Test valid echo execution
-	err := runEcho(echoCmd, []string{"test message"})
-	if err != nil {
-		t.Errorf("runEcho should not error with valid input: %v", err)
+	tests := []struct {
+		name           string
+		args           []string
+		expectedOutput string
+		expectError    bool
+	}{
+		{
+			name:           "echo simple message",
+			args:           []string{"test message"},
+			expectedOutput: "test message\n",
+			expectError:    false,
+		},
+		{
+			name:           "echo with special characters",
+			args:           []string{"Hello, World!"},
+			expectedOutput: "Hello, World!\n",
+			expectError:    false,
+		},
 	}
-}
 
-func TestRunEchoInvalidArgs(t *testing.T) {
-	// Test that echo requires exactly one argument
-	// Note: Cobra handles argument validation, so we test the command validation
-	if echoCmd.Args == nil {
-		t.Error("Echo command should have argument validation")
-	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Create a buffer to capture output
+			var buf bytes.Buffer
 
-	// Test that the command validates arguments correctly
-	err := echoCmd.Args(echoCmd, []string{})
-	if err == nil {
-		t.Error("Echo command should error with no arguments")
-	}
+			// Call runEcho directly
+			err := runEcho(nil, tt.args, &buf)
 
-	err = echoCmd.Args(echoCmd, []string{"arg1", "arg2"})
-	if err == nil {
-		t.Error("Echo command should error with multiple arguments")
+			if tt.expectError {
+				if err == nil {
+					t.Error("Expected error but got none")
+				}
+				return
+			}
+
+			if err != nil {
+				t.Errorf("Unexpected error: %v", err)
+				return
+			}
+
+			// Check the output
+			output := buf.String()
+			if output != tt.expectedOutput {
+				t.Errorf("Expected output %q, got %q", tt.expectedOutput, output)
+			}
+		})
 	}
 }

@@ -1,6 +1,9 @@
 package main
 
 import (
+	"bytes"
+	"os/exec"
+	"strings"
 	"testing"
 )
 
@@ -69,26 +72,27 @@ func TestRunMMSI(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Reset flags
-			mmsiOperation = "validate"
-			mmsiInput = ""
-			mmsiCountryCode = "US"
-			mmsiCount = 1
+			// Execute the CLI via go run
+			args := append([]string{"run", ".", "mmsi"}, tt.args...)
+			cmd := exec.Command("go", args...)
+			output, err := cmd.CombinedOutput()
 
-			// Parse flags
-			mmsiCmd.ParseFlags(tt.args)
-
-			// Test the runMMSI function
-			err := runMMSI(mmsiCmd, []string{})
-			
 			if tt.hasError {
 				if err == nil {
-					t.Errorf("Expected error but got none")
+					t.Errorf("Expected error but command succeeded. Output: %s", string(output))
 				}
-			} else {
-				if err != nil {
-					t.Errorf("Unexpected error: %v", err)
-				}
+				return
+			}
+
+			if err != nil {
+				t.Errorf("Unexpected error: %v\nOutput: %s", err, string(output))
+				return
+			}
+
+			// Check that output is not empty
+			outputStr := strings.TrimSpace(string(output))
+			if len(outputStr) == 0 {
+				t.Error("Expected non-empty output")
 			}
 		})
 	}
@@ -127,5 +131,83 @@ func TestMMSICmdGroup(t *testing.T) {
 	// Test that command is in the tools group
 	if mmsiCmd.GroupID != "tools" {
 		t.Errorf("Expected group ID 'tools', got '%s'", mmsiCmd.GroupID)
+	}
+}
+
+// TestRunMMSIUnit tests the runMMSI function directly with buffer (for coverage)
+func TestRunMMSIUnit(t *testing.T) {
+	tests := []struct {
+		name        string
+		operation   string
+		input       string
+		countryCode string
+		count       int
+		expectError bool
+	}{
+		{
+			name:        "validate valid MMSI",
+			operation:   "validate",
+			input:       "366123456",
+			expectError: false,
+		},
+		{
+			name:        "validate invalid MMSI",
+			operation:   "validate",
+			input:       "12345678",
+			expectError: false,
+		},
+		{
+			name:        "generate single MMSI",
+			operation:   "generate",
+			countryCode: "US",
+			count:       1,
+			expectError: false,
+		},
+		{
+			name:        "generate multiple MMSIs",
+			operation:   "generate",
+			count:       3,
+			expectError: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Reset and set global variables
+			mmsiOperation = tt.operation
+			mmsiInput = tt.input
+			mmsiCountryCode = tt.countryCode
+			if mmsiCountryCode == "" {
+				mmsiCountryCode = "US"
+			}
+			mmsiCount = tt.count
+			if mmsiCount == 0 {
+				mmsiCount = 1
+			}
+
+			// Create a buffer to capture output
+			var buf bytes.Buffer
+
+			// Call runMMSI directly
+			err := runMMSI(nil, nil, &buf)
+
+			if tt.expectError {
+				if err == nil {
+					t.Error("Expected error but got none")
+				}
+				return
+			}
+
+			if err != nil {
+				t.Errorf("Unexpected error: %v", err)
+				return
+			}
+
+			// Check that output is not empty
+			output := buf.String()
+			if len(strings.TrimSpace(output)) == 0 {
+				t.Error("Expected non-empty output")
+			}
+		})
 	}
 }

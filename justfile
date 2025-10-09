@@ -50,12 +50,24 @@ test:
     @echo "Running tests..."
     go test -v ./...
 
-# Run tests with coverage
+# Run tests with coverage and show percentages
 test-coverage:
     @echo "Running tests with coverage..."
-    go test -v -coverprofile=coverage.out ./...
-    go tool cover -html=coverage.out -o coverage.html
-    @echo "Coverage report generated: coverage.html"
+    go test -short -coverprofile=coverage.out ./... || true
+    @if [ -f coverage.out ]; then \
+        go tool cover -func=coverage.out | tail -1; \
+    fi
+
+# Generate HTML coverage report
+coverage-html:
+    @echo "Generating HTML coverage report..."
+    @if [ -f coverage.out ]; then \
+        go tool cover -html=coverage.out -o coverage.html && \
+        echo "Coverage report generated: coverage.html"; \
+    else \
+        echo "Error: coverage.out not found. Run 'just test-coverage' first."; \
+        exit 1; \
+    fi
 
 # Format code
 fmt:

@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"io"
+	"os"
 
 	"github.com/kluzzebass/mcpipboy/internal/tools"
 	"github.com/spf13/cobra"
@@ -57,7 +59,9 @@ Examples:
   mcpipboy iban --operation generate --country-code "GB" --count 5
   mcpipboy iban --operation generate --country-code "DE"
   mcpipboy iban --operation validate --input "DE89 3704 0044 0532 0130 00"`,
-	RunE: runIBAN,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return runIBAN(cmd, args, os.Stdout)
+	},
 }
 
 func init() {
@@ -70,7 +74,7 @@ func init() {
 	rootCmd.AddCommand(ibanCmd)
 }
 
-func runIBAN(cmd *cobra.Command, args []string) error {
+func runIBAN(cmd *cobra.Command, args []string, out io.Writer) error {
 	tool := tools.NewIBANTool()
 
 	// Build parameters map
@@ -102,14 +106,14 @@ func runIBAN(cmd *cobra.Command, args []string) error {
 		if resultMap, ok := result.(map[string]interface{}); ok {
 			if valid, ok := resultMap["valid"].(bool); ok {
 				if valid {
-					fmt.Printf("Valid IBAN: %s\n", resultMap["iban"])
+					fmt.Fprintf(out, "Valid IBAN: %s\n", resultMap["iban"])
 					if country, ok := resultMap["country"].(string); ok {
-						fmt.Printf("   Country: %s\n", country)
+						fmt.Fprintf(out, "   Country: %s\n", country)
 					}
 				} else {
-					fmt.Printf("Invalid IBAN: %s\n", resultMap["error"])
+					fmt.Fprintf(out, "Invalid IBAN: %s\n", resultMap["error"])
 					if input, ok := resultMap["input"].(string); ok {
-						fmt.Printf("   Input: %s\n", input)
+						fmt.Fprintf(out, "   Input: %s\n", input)
 					}
 				}
 			}
@@ -118,13 +122,13 @@ func runIBAN(cmd *cobra.Command, args []string) error {
 		if ibanCount == 1 {
 			// Single IBAN
 			if iban, ok := result.(string); ok {
-				fmt.Println(iban)
+				fmt.Fprintln(out, iban)
 			}
 		} else {
 			// Multiple IBANs
 			if ibans, ok := result.([]string); ok {
 				for _, iban := range ibans {
-					fmt.Println(iban)
+					fmt.Fprintln(out, iban)
 				}
 			}
 		}

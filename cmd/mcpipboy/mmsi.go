@@ -3,6 +3,8 @@ package main
 
 import (
 	"fmt"
+	"io"
+	"os"
 
 	"github.com/kluzzebass/mcpipboy/internal/tools"
 	"github.com/spf13/cobra"
@@ -40,7 +42,9 @@ Examples:
 
   # Generate multiple coast stations for UK
   mcpipboy mmsi --operation generate --type coast --country-code "GB" --count 5`,
-	RunE: runMMSI,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return runMMSI(cmd, args, os.Stdout)
+	},
 }
 
 func init() {
@@ -53,12 +57,9 @@ func init() {
 	mmsiCmd.Flags().StringVar(&mmsiType, "type", "", "MMSI type to generate (optional for generation)")
 	mmsiCmd.Flags().StringVar(&mmsiCountryCode, "country-code", "US", "Country code for generation (e.g., US, GB, DE, FR, etc.)")
 	mmsiCmd.Flags().IntVar(&mmsiCount, "count", 1, "Number of MMSI numbers to generate (max: 100)")
-
-	// Mark required flags
-	mmsiCmd.MarkFlagRequired("input")
 }
 
-func runMMSI(cmd *cobra.Command, args []string) error {
+func runMMSI(cmd *cobra.Command, args []string, out io.Writer) error {
 	// Build parameters map
 	params := make(map[string]interface{})
 
@@ -97,29 +98,29 @@ func runMMSI(cmd *cobra.Command, args []string) error {
 	switch v := result.(type) {
 	case string:
 		// Single MMSI number
-		fmt.Println(v)
+		fmt.Fprintln(out, v)
 	case []string:
 		// Multiple MMSI numbers
 		for _, mmsi := range v {
-			fmt.Println(mmsi)
+			fmt.Fprintln(out, mmsi)
 		}
 	case map[string]interface{}:
 		// Validation result
 		if valid, ok := v["valid"].(bool); ok {
 			if valid {
-				fmt.Printf("Valid MMSI: %s\n", v["mmsi"])
+				fmt.Fprintf(out, "Valid MMSI: %s\n", v["mmsi"])
 				if countryName, ok := v["country_name"].(string); ok {
-					fmt.Printf("   Country: %s\n", countryName)
+					fmt.Fprintf(out, "   Country: %s\n", countryName)
 				}
 			} else {
-				fmt.Printf("Invalid MMSI: %s\n", v["error"])
+				fmt.Fprintf(out, "Invalid MMSI: %s\n", v["error"])
 				if input, ok := v["input"].(string); ok {
-					fmt.Printf("   Input: %s\n", input)
+					fmt.Fprintf(out, "   Input: %s\n", input)
 				}
 			}
 		}
 	default:
-		fmt.Printf("Result: %v\n", result)
+		fmt.Fprintf(out, "Result: %v\n", result)
 	}
 
 	return nil

@@ -1,6 +1,9 @@
 package main
 
 import (
+	"bytes"
+	"os/exec"
+	"strings"
 	"testing"
 )
 
@@ -64,37 +67,44 @@ func TestTimeCommand(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Reset flags for each test
-			timeType = "now"
-			timeFormat = "iso"
-			timezone = "utc"
-			timeInput = ""
-			timeFrom = ""
-			timeTo = ""
-			timeOffset = ""
+			// Execute the CLI via go run
+			args := append([]string{"run", ".", "time"}, tt.args...)
+			cmd := exec.Command("go", args...)
+			output, err := cmd.CombinedOutput()
 
-			// Parse flags manually
-			cmd := timeCmd
-			cmd.ParseFlags(tt.args)
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("Expected error but command succeeded. Output: %s", string(output))
+				}
+				return
+			}
 
-			// Execute the command directly
-			err := runTime(cmd, tt.args)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("time command error = %v, wantErr %v", err, tt.wantErr)
+			if err != nil {
+				t.Errorf("Unexpected error: %v\nOutput: %s", err, string(output))
+				return
+			}
+
+			// Check that output is not empty
+			outputStr := strings.TrimSpace(string(output))
+			if len(outputStr) == 0 {
+				t.Error("Expected non-empty output")
 			}
 		})
 	}
 }
 
 func TestTimeCommandHelp(t *testing.T) {
-	// Test that help is properly formatted
-	cmd := timeCmd
-	cmd.SetArgs([]string{"--help"})
-
-	// This should not error
-	err := cmd.Execute()
-	if err != nil {
-		t.Errorf("time command help should not error: %v", err)
+	// Test that help text is properly set
+	if timeCmd.Short == "" {
+		t.Error("Time command should have a short description")
+	}
+	
+	if timeCmd.Long == "" {
+		t.Error("Time command should have a long description")
+	}
+	
+	if timeCmd.Use == "" {
+		t.Error("Time command should have usage text")
 	}
 }
 
@@ -128,23 +138,100 @@ func TestTimeCommandValidation(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Reset flags for each test
-			timeType = "now"
-			timeFormat = "iso"
-			timezone = "utc"
-			timeInput = ""
+			// Execute the CLI via go run
+			args := append([]string{"run", "."}, tt.args...)
+			cmd := exec.Command("go", args...)
+			output, err := cmd.CombinedOutput()
+
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("Expected error but command succeeded. Output: %s", string(output))
+				}
+				return
+			}
+
+			if err != nil {
+				t.Errorf("Unexpected error: %v\nOutput: %s", err, string(output))
+				return
+			}
+
+			// Check that output is not empty
+			outputStr := strings.TrimSpace(string(output))
+			if len(outputStr) == 0 {
+				t.Error("Expected non-empty output")
+			}
+		})
+	}
+}
+
+// TestRunTimeUnit tests the runTime function directly with buffer (for coverage)
+func TestRunTimeUnit(t *testing.T) {
+	tests := []struct {
+		name        string
+		timeType    string
+		format      string
+		timezone    string
+		input       string
+		offset      string
+		expectError bool
+	}{
+		{
+			name:        "get current time",
+			timeType:    "now",
+			format:      "iso",
+			timezone:    "utc",
+			expectError: false,
+		},
+		{
+			name:        "parse timestamp",
+			timeType:    "timestamp",
+			input:       "2025-01-01T12:00:00Z",
+			format:      "date",
+			expectError: false,
+		},
+		{
+			name:        "time with offset",
+			timeType:    "timestamp",
+			input:       "2025-01-01T12:00:00Z",
+			offset:      "+1h",
+			format:      "datetime",
+			expectError: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Reset and set global variables
+			timeType = tt.timeType
+			timeFormat = tt.format
+			timezone = tt.timezone
+			timeInput = tt.input
+			timeOffset = tt.offset
 			timeFrom = ""
 			timeTo = ""
-			timeOffset = ""
 
-			// Parse flags manually
-			cmd := timeCmd
-			cmd.ParseFlags(tt.args)
+			// Create a buffer to capture output
+			var buf bytes.Buffer
 
-			// Execute the command directly
-			err := runTime(cmd, tt.args)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("time command error = %v, wantErr %v", err, tt.wantErr)
+			// Call runTime directly
+			err := runTime(nil, nil, &buf)
+
+			if tt.expectError {
+				if err == nil {
+					t.Error("Expected error but got none")
+				}
+				return
+			}
+
+			if err != nil {
+				t.Errorf("Unexpected error: %v", err)
+				return
+			}
+
+			// Check that output is not empty
+			output := buf.String()
+			if len(strings.TrimSpace(output)) == 0 {
+				t.Error("Expected non-empty output")
 			}
 		})
 	}

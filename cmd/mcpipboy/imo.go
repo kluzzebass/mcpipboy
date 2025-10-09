@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"io"
+	"os"
 
 	"github.com/kluzzebass/mcpipboy/internal/tools"
 	"github.com/spf13/cobra"
@@ -26,7 +28,9 @@ Examples:
   mcpipboy imo --operation validate --input "1234567"
   mcpipboy imo --operation generate --count 5
   mcpipboy imo --operation generate`,
-	RunE: runIMO,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return runIMO(cmd, args, os.Stdout)
+	},
 }
 
 func init() {
@@ -42,7 +46,7 @@ func init() {
 	// We'll handle this in the runIMO function
 }
 
-func runIMO(cmd *cobra.Command, args []string) error {
+func runIMO(cmd *cobra.Command, args []string, out io.Writer) error {
 	// Create the IMO tool
 	tool := tools.NewIMOTool()
 
@@ -75,26 +79,26 @@ func runIMO(cmd *cobra.Command, args []string) error {
 	switch v := result.(type) {
 	case string:
 		// Single IMO number
-		fmt.Println(v)
+		fmt.Fprintln(out, v)
 	case []string:
 		// Multiple IMO numbers
 		for _, imo := range v {
-			fmt.Println(imo)
+			fmt.Fprintln(out, imo)
 		}
 	case map[string]interface{}:
 		// Validation result
 		if valid, ok := v["valid"].(bool); ok {
 			if valid {
-				fmt.Printf("Valid IMO: %s\n", v["imo"])
+				fmt.Fprintf(out, "Valid IMO: %s\n", v["imo"])
 			} else {
-				fmt.Printf("Invalid IMO: %s\n", v["error"])
+				fmt.Fprintf(out, "Invalid IMO: %s\n", v["error"])
 				if input, ok := v["input"].(string); ok {
-					fmt.Printf("   Input: %s\n", input)
+					fmt.Fprintf(out, "   Input: %s\n", input)
 				}
 			}
 		} else {
 			// Fallback for unexpected result format
-			fmt.Printf("%+v\n", v)
+			fmt.Fprintf(out, "%+v\n", v)
 		}
 	default:
 		return fmt.Errorf("unexpected result type: %T", result)

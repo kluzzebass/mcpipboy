@@ -3,6 +3,8 @@ package main
 
 import (
 	"fmt"
+	"io"
+	"os"
 
 	"github.com/kluzzebass/mcpipboy/internal/tools"
 	"github.com/spf13/cobra"
@@ -25,7 +27,9 @@ Examples:
   mcpipboy uuid --version v7 --count 10
   mcpipboy uuid --version v5 --namespace "6ba7b810-9dad-11d1-80b4-00c04fd430c8" --name "example"
   mcpipboy uuid --version validate --input "550e8400-e29b-41d4-a716-446655440000"`,
-	RunE: runUUID,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return runUUID(cmd, args, os.Stdout)
+	},
 }
 
 var (
@@ -50,7 +54,7 @@ func init() {
 	rootCmd.AddCommand(uuidCmd)
 }
 
-func runUUID(cmd *cobra.Command, args []string) error {
+func runUUID(cmd *cobra.Command, args []string, out io.Writer) error {
 	// Build parameters map
 	params := make(map[string]interface{})
 
@@ -84,6 +88,6 @@ func runUUID(cmd *cobra.Command, args []string) error {
 	}
 
 	// Print the result
-	fmt.Println(result)
+	fmt.Fprintln(out, result)
 	return nil
 }

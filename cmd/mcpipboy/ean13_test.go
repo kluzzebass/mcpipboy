@@ -1,6 +1,9 @@
 package main
 
 import (
+	"bytes"
+	"os/exec"
+	"strings"
 	"testing"
 )
 
@@ -59,14 +62,27 @@ func TestRunEAN13(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Parse flags manually
-			cmd := ean13Cmd
-			cmd.ParseFlags(tt.args)
+			// Execute the CLI via go run
+			args := append([]string{"run", ".", "ean13"}, tt.args...)
+			cmd := exec.Command("go", args...)
+			output, err := cmd.CombinedOutput()
 
-			// Execute the command directly
-			err := runEAN13(cmd, tt.args)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("runEAN13() error = %v, wantErr %v", err, tt.wantErr)
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("Expected error but command succeeded. Output: %s", string(output))
+				}
+				return
+			}
+
+			if err != nil {
+				t.Errorf("Unexpected error: %v\nOutput: %s", err, string(output))
+				return
+			}
+
+			// Check that output is not empty
+			outputStr := strings.TrimSpace(string(output))
+			if len(outputStr) == 0 {
+				t.Error("Expected non-empty output")
 			}
 		})
 	}
@@ -99,5 +115,77 @@ func TestEAN13CmdGroup(t *testing.T) {
 	// Test that the command is assigned to the tools group
 	if ean13Cmd.GroupID != "tools" {
 		t.Errorf("Expected GroupID 'tools', got '%s'", ean13Cmd.GroupID)
+	}
+}
+
+// TestRunEAN13Unit tests the runEAN13 function directly with buffer (for coverage)
+func TestRunEAN13Unit(t *testing.T) {
+	tests := []struct {
+		name        string
+		operation   string
+		input       string
+		count       int
+		expectError bool
+	}{
+		{
+			name:        "validate valid EAN-13",
+			operation:   "validate",
+			input:       "1234567890128",
+			expectError: false,
+		},
+		{
+			name:        "validate invalid EAN-13",
+			operation:   "validate",
+			input:       "1234567890123",
+			expectError: false,
+		},
+		{
+			name:        "generate single EAN-13",
+			operation:   "generate",
+			count:       1,
+			expectError: false,
+		},
+		{
+			name:        "generate multiple EAN-13s",
+			operation:   "generate",
+			count:       5,
+			expectError: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Reset and set global variables
+			ean13Operation = tt.operation
+			ean13Input = tt.input
+			ean13Count = tt.count
+			if ean13Count == 0 {
+				ean13Count = 1
+			}
+
+			// Create a buffer to capture output
+			var buf bytes.Buffer
+
+			// Call runEAN13 directly
+			err := runEAN13(nil, nil, &buf)
+
+			if tt.expectError {
+				if err == nil {
+					t.Error("Expected error but got none")
+				}
+				return
+			}
+
+			if err != nil {
+				t.Errorf("Unexpected error: %v", err)
+				return
+			}
+
+			// Check that output is not empty
+			output := buf.String()
+			if len(strings.TrimSpace(output)) == 0 {
+				t.Error("Expected non-empty output")
+			}
+		})
 	}
 }

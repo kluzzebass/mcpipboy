@@ -3,6 +3,8 @@ package main
 
 import (
 	"fmt"
+	"io"
+	"os"
 
 	"github.com/kluzzebass/mcpipboy/internal/tools"
 	"github.com/spf13/cobra"
@@ -22,7 +24,9 @@ Examples:
   mcpipboy random --type integer --min 1 --max 100
   mcpipboy random --type float --min 0 --max 1 --precision 3 --count 5
   mcpipboy random --type boolean --count 10`,
-	RunE: runRandom,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return runRandom(cmd, args, os.Stdout)
+	},
 }
 
 var (
@@ -47,7 +51,7 @@ func init() {
 	rootCmd.AddCommand(randomCmd)
 }
 
-func runRandom(cmd *cobra.Command, args []string) error {
+func runRandom(cmd *cobra.Command, args []string, out io.Writer) error {
 	// Build parameters map
 	params := make(map[string]interface{})
 
@@ -79,6 +83,6 @@ func runRandom(cmd *cobra.Command, args []string) error {
 	}
 
 	// Print the result
-	fmt.Println(result)
+	fmt.Fprintln(out, result)
 	return nil
 }

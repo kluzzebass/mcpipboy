@@ -4,6 +4,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
 	"slices"
 	"strings"
 
@@ -26,6 +27,8 @@ You can also toggle tools on/off using the tools manager in your MCP client.`,
 var (
 	enableTools  []string
 	disableTools []string
+	debugMode    bool
+	logFile      string
 )
 
 func init() {
@@ -37,6 +40,8 @@ func init() {
 	// Add flags for tool enable/disable
 	serveCmd.Flags().StringSliceVar(&enableTools, "enable", []string{}, "Comma-separated list of tools to enable (mutually exclusive with --disable)")
 	serveCmd.Flags().StringSliceVar(&disableTools, "disable", []string{}, "Comma-separated list of tools to disable (mutually exclusive with --enable)")
+	serveCmd.Flags().BoolVar(&debugMode, "debug", false, "Enable debug logging for MCP protocol messages")
+	serveCmd.Flags().StringVar(&logFile, "log-file", "", "File to write debug logs to (default: stderr)")
 
 	// Mark flags as mutually exclusive
 	serveCmd.MarkFlagsMutuallyExclusive("enable", "disable")
@@ -122,16 +127,37 @@ func runServe(cmd *cobra.Command, args []string) error {
 	}
 
 	// Create MCP server
-	server := server.NewServer()
+	srv := server.NewServer()
+
+	// Configure debug mode if requested
+	if debugMode {
+		srv.SetDebugMode(true)
+
+		// Set up log writer
+		var logWriter *os.File
+		var err error
+		if logFile != "" {
+			// Write logs to specified file
+			logWriter, err = os.OpenFile(logFile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+			if err != nil {
+				return fmt.Errorf("failed to open log file: %v", err)
+			}
+			defer logWriter.Close()
+		} else {
+			// Write logs to stderr by default
+			logWriter = os.Stderr
+		}
+		srv.SetLogWriter(logWriter)
+	}
 
 	// Register only the enabled tools with the MCP server
 	for _, toolName := range enabledTools {
 		if tool, exists := registry.GetTool(toolName); exists {
-			server.RegisterTool(tool)
+			srv.RegisterTool(tool)
 		}
 	}
 
 	// Start the MCP server
 	ctx := context.Background()
-	return server.Start(ctx)
+	return srv.Start(ctx)
 }

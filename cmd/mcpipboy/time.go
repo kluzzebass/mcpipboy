@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"io"
+	"os"
 
 	"github.com/kluzzebass/mcpipboy/internal/tools"
 	"github.com/spf13/cobra"
@@ -27,7 +29,9 @@ Examples:
   mcpipboy time --type timestamp --input "2025-01-01T12:00:00Z" --timezone "America/New_York"`,
 	GroupID: "tools",
 	Args:    cobra.ExactArgs(0),
-	RunE:    runTime,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return runTime(cmd, args, os.Stdout)
+	},
 }
 
 var (
@@ -58,7 +62,7 @@ func init() {
 	rootCmd.AddCommand(timeCmd)
 }
 
-func runTime(cmd *cobra.Command, args []string) error {
+func runTime(cmd *cobra.Command, args []string, out io.Writer) error {
 	// Build parameters map
 	params := make(map[string]interface{})
 
@@ -102,22 +106,22 @@ func runTime(cmd *cobra.Command, args []string) error {
 	if resultMap, ok := result.(map[string]interface{}); ok {
 		// Handle relative time results
 		if duration, ok := resultMap["duration"].(string); ok {
-			fmt.Printf("Duration: %s\n", duration)
+			fmt.Fprintf(out, "Duration: %s\n", duration)
 			if seconds, ok := resultMap["seconds"].(float64); ok {
-				fmt.Printf("Seconds: %.0f\n", seconds)
+				fmt.Fprintf(out, "Seconds: %.0f\n", seconds)
 			}
 			if from, ok := resultMap["from"].(string); ok {
-				fmt.Printf("From: %s\n", from)
+				fmt.Fprintf(out, "From: %s\n", from)
 			}
 			if to, ok := resultMap["to"].(string); ok {
-				fmt.Printf("To: %s\n", to)
+				fmt.Fprintf(out, "To: %s\n", to)
 			}
 		}
 	} else if resultStr, ok := result.(string); ok {
 		// Handle simple string results
-		fmt.Println(resultStr)
+		fmt.Fprintln(out, resultStr)
 	} else {
-		fmt.Printf("%v\n", result)
+		fmt.Fprintf(out, "%v\n", result)
 	}
 
 	return nil

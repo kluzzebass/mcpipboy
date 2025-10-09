@@ -1,6 +1,9 @@
 package main
 
 import (
+	"bytes"
+	"os/exec"
+	"strings"
 	"testing"
 )
 
@@ -57,25 +60,27 @@ func TestRunIMO(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Reset flags
-			imoOperation = "validate"
-			imoInput = ""
-			imoCount = 1
-
-			// Parse flags
-			imoCmd.ParseFlags(tt.args)
-
-			// Test the runIMO function
-			err := runIMO(imoCmd, []string{})
+			// Execute the CLI via go run
+			args := append([]string{"run", ".", "imo"}, tt.args...)
+			cmd := exec.Command("go", args...)
+			output, err := cmd.CombinedOutput()
 
 			if tt.hasError {
 				if err == nil {
-					t.Errorf("Expected error but got none")
+					t.Errorf("Expected error but command succeeded. Output: %s", string(output))
 				}
-			} else {
-				if err != nil {
-					t.Errorf("Unexpected error: %v", err)
-				}
+				return
+			}
+
+			if err != nil {
+				t.Errorf("Unexpected error: %v\nOutput: %s", err, string(output))
+				return
+			}
+
+			// Check that output is not empty
+			outputStr := strings.TrimSpace(string(output))
+			if len(outputStr) == 0 {
+				t.Error("Expected non-empty output")
 			}
 		})
 	}
@@ -111,5 +116,77 @@ func TestIMOCmdGroup(t *testing.T) {
 	// Test that command is in the tools group
 	if imoCmd.GroupID != "tools" {
 		t.Errorf("Expected group ID 'tools', got '%s'", imoCmd.GroupID)
+	}
+}
+
+// TestRunIMOUnit tests the runIMO function directly with buffer (for coverage)
+func TestRunIMOUnit(t *testing.T) {
+	tests := []struct {
+		name        string
+		operation   string
+		input       string
+		count       int
+		expectError bool
+	}{
+		{
+			name:        "validate valid IMO",
+			operation:   "validate",
+			input:       "1234567",
+			expectError: false,
+		},
+		{
+			name:        "validate invalid IMO",
+			operation:   "validate",
+			input:       "1234568",
+			expectError: false,
+		},
+		{
+			name:        "generate single IMO",
+			operation:   "generate",
+			count:       1,
+			expectError: false,
+		},
+		{
+			name:        "generate multiple IMOs",
+			operation:   "generate",
+			count:       3,
+			expectError: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Reset and set global variables
+			imoOperation = tt.operation
+			imoInput = tt.input
+			imoCount = tt.count
+			if imoCount == 0 {
+				imoCount = 1
+			}
+
+			// Create a buffer to capture output
+			var buf bytes.Buffer
+
+			// Call runIMO directly
+			err := runIMO(nil, nil, &buf)
+
+			if tt.expectError {
+				if err == nil {
+					t.Error("Expected error but got none")
+				}
+				return
+			}
+
+			if err != nil {
+				t.Errorf("Unexpected error: %v", err)
+				return
+			}
+
+			// Check that output is not empty
+			output := buf.String()
+			if len(strings.TrimSpace(output)) == 0 {
+				t.Error("Expected non-empty output")
+			}
+		})
 	}
 }

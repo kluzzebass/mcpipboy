@@ -3,6 +3,8 @@ package main
 
 import (
 	"fmt"
+	"io"
+	"os"
 
 	"github.com/kluzzebass/mcpipboy/internal/tools"
 	"github.com/spf13/cobra"
@@ -14,7 +16,9 @@ var echoCmd = &cobra.Command{
 	Short: "Echo back a message",
 	Long:  `Echo back the provided message. This is a simple test tool.`,
 	Args:  cobra.ExactArgs(1),
-	RunE:  runEcho,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return runEcho(cmd, args, os.Stdout)
+	},
 }
 
 func init() {
@@ -24,7 +28,7 @@ func init() {
 	rootCmd.AddCommand(echoCmd)
 }
 
-func runEcho(cmd *cobra.Command, args []string) error {
+func runEcho(cmd *cobra.Command, args []string, out io.Writer) error {
 	// Create echo tool instance
 	echoTool := tools.NewEchoTool()
 
@@ -45,6 +49,6 @@ func runEcho(cmd *cobra.Command, args []string) error {
 	}
 
 	// Output the result
-	fmt.Println(result)
+	fmt.Fprintln(out, result)
 	return nil
 }

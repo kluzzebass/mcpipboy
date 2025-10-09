@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"io"
+	"os"
 
 	"github.com/kluzzebass/mcpipboy/internal/tools"
 	"github.com/spf13/cobra"
@@ -33,7 +35,9 @@ Examples:
   mcpipboy creditcard --operation generate --card-type visa --count 5
   mcpipboy creditcard --operation generate --card-type amex
   mcpipboy creditcard --operation validate --input "5555 5555 5555 4444"`,
-	RunE: runCreditCard,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return runCreditCard(cmd, args, os.Stdout)
+	},
 }
 
 func init() {
@@ -46,7 +50,7 @@ func init() {
 	rootCmd.AddCommand(creditCardCmd)
 }
 
-func runCreditCard(cmd *cobra.Command, args []string) error {
+func runCreditCard(cmd *cobra.Command, args []string, out io.Writer) error {
 	tool := tools.NewCreditCardTool()
 
 	// Build parameters map
@@ -78,14 +82,14 @@ func runCreditCard(cmd *cobra.Command, args []string) error {
 		if resultMap, ok := result.(map[string]interface{}); ok {
 			if valid, ok := resultMap["valid"].(bool); ok {
 				if valid {
-					fmt.Printf("Valid credit card: %s\n", resultMap["card"])
+					fmt.Fprintf(out, "Valid credit card: %s\n", resultMap["card"])
 					if cardType, ok := resultMap["type"].(string); ok {
-						fmt.Printf("   Type: %s\n", cardType)
+						fmt.Fprintf(out, "   Type: %s\n", cardType)
 					}
 				} else {
-					fmt.Printf("Invalid credit card: %s\n", resultMap["error"])
+					fmt.Fprintf(out, "Invalid credit card: %s\n", resultMap["error"])
 					if input, ok := resultMap["input"].(string); ok {
-						fmt.Printf("   Input: %s\n", input)
+						fmt.Fprintf(out, "   Input: %s\n", input)
 					}
 				}
 			}
@@ -94,13 +98,13 @@ func runCreditCard(cmd *cobra.Command, args []string) error {
 		if creditCardCount == 1 {
 			// Single card
 			if card, ok := result.(string); ok {
-				fmt.Println(card)
+				fmt.Fprintln(out, card)
 			}
 		} else {
 			// Multiple cards
 			if cards, ok := result.([]string); ok {
 				for _, card := range cards {
-					fmt.Println(card)
+					fmt.Fprintln(out, card)
 				}
 			}
 		}

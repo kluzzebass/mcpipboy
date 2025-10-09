@@ -3,6 +3,8 @@ package main
 
 import (
 	"fmt"
+	"io"
+	"os"
 
 	"github.com/kluzzebass/mcpipboy/internal/tools"
 	"github.com/spf13/cobra"
@@ -13,7 +15,9 @@ var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Display the current version",
 	Long:  `Display the current version of mcpipboy.`,
-	RunE:  runVersion,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return runVersion(cmd, args, os.Stdout)
+	},
 }
 
 func init() {
@@ -23,7 +27,7 @@ func init() {
 	rootCmd.AddCommand(versionCmd)
 }
 
-func runVersion(cmd *cobra.Command, args []string) error {
+func runVersion(cmd *cobra.Command, args []string, out io.Writer) error {
 	// Create version tool instance
 	versionTool := tools.NewVersionTool()
 
@@ -42,6 +46,6 @@ func runVersion(cmd *cobra.Command, args []string) error {
 	}
 
 	// Output the result
-	fmt.Println(result)
+	fmt.Fprintln(out, result)
 	return nil
 }

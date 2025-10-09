@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"io"
+	"os"
 
 	"github.com/kluzzebass/mcpipboy/internal/tools"
 	"github.com/spf13/cobra"
@@ -38,7 +40,9 @@ Examples:
 
   # Generate multiple ISBN-13s
   mcpipboy isbn --operation generate --format "isbn13" --count 5`,
-	RunE: runISBN,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return runISBN(cmd, args, os.Stdout)
+	},
 }
 
 func init() {
@@ -54,7 +58,7 @@ func init() {
 	isbnCmd.GroupID = "tools"
 }
 
-func runISBN(cmd *cobra.Command, args []string) error {
+func runISBN(cmd *cobra.Command, args []string, out io.Writer) error {
 	// Create the ISBN tool
 	tool := tools.NewISBNTool()
 
@@ -90,43 +94,43 @@ func runISBN(cmd *cobra.Command, args []string) error {
 		if resultMap, ok := result.(map[string]interface{}); ok {
 			if valid, ok := resultMap["valid"].(bool); ok {
 				if valid {
-					fmt.Printf("Valid ISBN: %s\n", resultMap["isbn"])
+					fmt.Fprintf(out, "Valid ISBN: %s\n", resultMap["isbn"])
 					if format, ok := resultMap["format"].(string); ok {
-						fmt.Printf("   Format: %s\n", format)
+						fmt.Fprintf(out, "   Format: %s\n", format)
 					}
 				} else {
-					fmt.Printf("Invalid ISBN: %s\n", resultMap["error"])
+					fmt.Fprintf(out, "Invalid ISBN: %s\n", resultMap["error"])
 					if input, ok := resultMap["input"].(string); ok {
-						fmt.Printf("   Input: %s\n", input)
+						fmt.Fprintf(out, "   Input: %s\n", input)
 					}
 				}
 			} else {
-				fmt.Printf("ISBN validation result: %v\n", result)
+				fmt.Fprintf(out, "ISBN validation result: %v\n", result)
 			}
 		} else {
-			fmt.Printf("ISBN validation result: %v\n", result)
+			fmt.Fprintf(out, "ISBN validation result: %v\n", result)
 		}
 	} else if isbnOperation == "generate" {
 		if isbnCount == 1 {
 			// Single ISBN
 			if isbn, ok := result.(string); ok {
-				fmt.Printf("Generated ISBN: %s\n", isbn)
+				fmt.Fprintf(out, "Generated ISBN: %s\n", isbn)
 			} else {
-				fmt.Printf("Generated ISBN: %v\n", result)
+				fmt.Fprintf(out, "Generated ISBN: %v\n", result)
 			}
 		} else {
 			// Multiple ISBNs
 			if isbns, ok := result.([]string); ok {
-				fmt.Printf("Generated %d ISBNs:\n", len(isbns))
+				fmt.Fprintf(out, "Generated %d ISBNs:\n", len(isbns))
 				for i, isbn := range isbns {
-					fmt.Printf("  %d. %s\n", i+1, isbn)
+					fmt.Fprintf(out, "  %d. %s\n", i+1, isbn)
 				}
 			} else {
-				fmt.Printf("Generated ISBNs: %v\n", result)
+				fmt.Fprintf(out, "Generated ISBNs: %v\n", result)
 			}
 		}
 	} else {
-		fmt.Printf("ISBN result: %v\n", result)
+		fmt.Fprintf(out, "ISBN result: %v\n", result)
 	}
 
 	return nil

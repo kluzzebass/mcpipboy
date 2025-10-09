@@ -1,6 +1,9 @@
 package main
 
 import (
+	"bytes"
+	"os/exec"
+	"strings"
 	"testing"
 )
 
@@ -93,27 +96,27 @@ func TestRunRandom(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Reset flags
-			randomType = "integer"
-			randomCount = 1
-			randomMin = 0.0
-			randomMax = 100.0
-			randomPrecision = 2.0
-
-			// Parse flags
-			randomCmd.ParseFlags(tt.args)
-
-			// Test the runRandom function
-			err := runRandom(randomCmd, []string{})
+			// Execute the CLI via go run
+			args := append([]string{"run", ".", "random"}, tt.args...)
+			cmd := exec.Command("go", args...)
+			output, err := cmd.CombinedOutput()
 
 			if tt.hasError {
 				if err == nil {
-					t.Errorf("Expected error but got none")
+					t.Errorf("Expected error but command succeeded. Output: %s", string(output))
 				}
-			} else {
-				if err != nil {
-					t.Errorf("Unexpected error: %v", err)
-				}
+				return
+			}
+
+			if err != nil {
+				t.Errorf("Unexpected error: %v\nOutput: %s", err, string(output))
+				return
+			}
+
+			// Check that output is not empty
+			outputStr := strings.TrimSpace(string(output))
+			if len(outputStr) == 0 {
+				t.Error("Expected non-empty output")
 			}
 		})
 	}
@@ -155,5 +158,88 @@ func TestRandomCmdGroup(t *testing.T) {
 	// Test that command is in the tools group
 	if randomCmd.GroupID != "tools" {
 		t.Errorf("Expected group ID 'tools', got '%s'", randomCmd.GroupID)
+	}
+}
+
+// TestRunRandomUnit tests the runRandom function directly with buffer (for coverage)
+func TestRunRandomUnit(t *testing.T) {
+	tests := []struct {
+		name        string
+		randType    string
+		count       int
+		min         float64
+		max         float64
+		precision   int
+		expectError bool
+	}{
+		{
+			name:        "generate integer",
+			randType:    "integer",
+			count:       1,
+			min:         1,
+			max:         100,
+			expectError: false,
+		},
+		{
+			name:        "generate float",
+			randType:    "float",
+			count:       1,
+			min:         0,
+			max:         1,
+			precision:   3,
+			expectError: false,
+		},
+		{
+			name:        "generate boolean",
+			randType:    "boolean",
+			count:       1,
+			expectError: false,
+		},
+		{
+			name:        "generate multiple integers",
+			randType:    "integer",
+			count:       5,
+			min:         1,
+			max:         100,
+			expectError: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Reset and set global variables
+			randomType = tt.randType
+			randomCount = tt.count
+			randomMin = tt.min
+			randomMax = tt.max
+			randomPrecision = tt.precision
+			if randomCount == 0 {
+				randomCount = 1
+			}
+
+			// Create a buffer to capture output
+			var buf bytes.Buffer
+
+			// Call runRandom directly
+			err := runRandom(nil, nil, &buf)
+
+			if tt.expectError {
+				if err == nil {
+					t.Error("Expected error but got none")
+				}
+				return
+			}
+
+			if err != nil {
+				t.Errorf("Unexpected error: %v", err)
+				return
+			}
+
+			// Check that output is not empty
+			output := buf.String()
+			if len(strings.TrimSpace(output)) == 0 {
+				t.Error("Expected non-empty output")
+			}
+		})
 	}
 }

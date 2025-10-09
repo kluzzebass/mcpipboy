@@ -3,6 +3,7 @@ package server
 
 import (
 	"bufio"
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -417,7 +418,9 @@ func TestMCPServerProtocolCompliance(t *testing.T) {
 
 func testInvalidJSONRPC(t *testing.T, projectRoot string) {
 	cmd := exec.Command(projectRoot+"test-mcpipboy", "serve")
-	cmd.Stderr = os.Stderr
+	// Capture stderr to avoid spam from error messages
+	var stderrBuf bytes.Buffer
+	cmd.Stderr = &stderrBuf
 
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
@@ -472,7 +475,9 @@ func testInvalidJSONRPC(t *testing.T, projectRoot string) {
 
 func testUnsupportedMethod(t *testing.T, projectRoot string) {
 	cmd := exec.Command(projectRoot+"test-mcpipboy", "serve")
-	cmd.Stderr = os.Stderr
+	// Capture stderr to avoid spam from error messages
+	var stderrBuf bytes.Buffer
+	cmd.Stderr = &stderrBuf
 
 	stdin, err := cmd.StdinPipe()
 	if err != nil {

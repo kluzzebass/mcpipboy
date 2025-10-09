@@ -1,6 +1,9 @@
 package main
 
 import (
+	"bytes"
+	"os/exec"
+	"strings"
 	"testing"
 )
 
@@ -74,14 +77,27 @@ func TestRunISBN(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Parse flags manually
-			cmd := isbnCmd
-			cmd.ParseFlags(tt.args)
+			// Execute the CLI via go run
+			args := append([]string{"run", ".", "isbn"}, tt.args...)
+			cmd := exec.Command("go", args...)
+			output, err := cmd.CombinedOutput()
 
-			// Execute the command directly
-			err := runISBN(cmd, tt.args)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("runISBN() error = %v, wantErr %v", err, tt.wantErr)
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("Expected error but command succeeded. Output: %s", string(output))
+				}
+				return
+			}
+
+			if err != nil {
+				t.Errorf("Unexpected error: %v\nOutput: %s", err, string(output))
+				return
+			}
+
+			// Check that output is not empty
+			outputStr := strings.TrimSpace(string(output))
+			if len(outputStr) == 0 {
+				t.Error("Expected non-empty output")
 			}
 		})
 	}
@@ -114,5 +130,80 @@ func TestISBNCmdGroup(t *testing.T) {
 	// Test that the command is assigned to the tools group
 	if isbnCmd.GroupID != "tools" {
 		t.Errorf("Expected GroupID 'tools', got '%s'", isbnCmd.GroupID)
+	}
+}
+
+// TestRunISBNUnit tests the runISBN function directly with buffer (for coverage)
+func TestRunISBNUnit(t *testing.T) {
+	tests := []struct {
+		name        string
+		operation   string
+		input       string
+		format      string
+		count       int
+		expectError bool
+	}{
+		{
+			name:        "validate valid ISBN-10",
+			operation:   "validate",
+			input:       "0123456789",
+			expectError: false,
+		},
+		{
+			name:        "validate invalid ISBN",
+			operation:   "validate",
+			input:       "1234567890",
+			expectError: false,
+		},
+		{
+			name:        "generate single ISBN-13",
+			operation:   "generate",
+			format:      "isbn13",
+			count:       1,
+			expectError: false,
+		},
+		{
+			name:        "generate multiple ISBNs",
+			operation:   "generate",
+			count:       3,
+			expectError: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Reset and set global variables
+			isbnOperation = tt.operation
+			isbnInput = tt.input
+			isbnFormat = tt.format
+			isbnCount = tt.count
+			if isbnCount == 0 {
+				isbnCount = 1
+			}
+
+			// Create a buffer to capture output
+			var buf bytes.Buffer
+
+			// Call runISBN directly
+			err := runISBN(nil, nil, &buf)
+
+			if tt.expectError {
+				if err == nil {
+					t.Error("Expected error but got none")
+				}
+				return
+			}
+
+			if err != nil {
+				t.Errorf("Unexpected error: %v", err)
+				return
+			}
+
+			// Check that output is not empty
+			output := buf.String()
+			if len(strings.TrimSpace(output)) == 0 {
+				t.Error("Expected non-empty output")
+			}
+		})
 	}
 }

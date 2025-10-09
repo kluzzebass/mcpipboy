@@ -1,7 +1,11 @@
 // Package tools provides the version tool implementation
 package tools
 
-import version "github.com/kluzzebass/mcpipboy"
+import (
+	"fmt"
+
+	version "github.com/kluzzebass/mcpipboy"
+)
 
 // VersionTool implements the version functionality
 type VersionTool struct{}
@@ -48,4 +52,14 @@ func (v *VersionTool) GetOutputSchema() map[string]interface{} {
 			},
 		},
 	}
+}
+
+// GetResources returns the list of resources this tool provides
+func (v *VersionTool) GetResources() []Resource {
+	return []Resource{}
+}
+
+// ReadResource reads a specific resource by URI
+func (v *VersionTool) ReadResource(uri string) (string, error) {
+	return "", fmt.Errorf("no resources available for version tool")
 }

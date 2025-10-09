@@ -1,6 +1,7 @@
 package tools
 
 import (
+	"encoding/json"
 	"fmt"
 	"math/rand"
 	"strconv"
@@ -794,5 +795,52 @@ func (m *MMSITool) GetOutputSchema() map[string]interface{} {
 				"description": "Generated MMSI number(s) or validation result",
 			},
 		},
+	}
+}
+
+// GetResources returns the list of resources this tool provides
+func (m *MMSITool) GetResources() []Resource {
+	return []Resource{
+		{
+			Name:     "MMSI Types",
+			URI:      "mmsi://types",
+			MIMEType: "application/json",
+		},
+		{
+			Name:     "MMSI Country Codes",
+			URI:      "mmsi://countries",
+			MIMEType: "application/json",
+		},
+	}
+}
+
+// ReadResource reads a specific resource by URI
+func (m *MMSITool) ReadResource(uri string) (string, error) {
+	switch uri {
+	case "mmsi://types":
+		// Return supported MMSI types
+		types := m.getSupportedTypes()
+		jsonData, err := json.Marshal(types)
+		if err != nil {
+			return "", fmt.Errorf("failed to marshal types: %w", err)
+		}
+		return string(jsonData), nil
+	case "mmsi://countries":
+		// Return country codes and their MIDs
+		countries := make([]map[string]interface{}, len(m.countries))
+		for i, country := range m.countries {
+			countries[i] = map[string]interface{}{
+				"code": country.Code,
+				"name": country.Name,
+				"mids": country.MIDs,
+			}
+		}
+		jsonData, err := json.Marshal(countries)
+		if err != nil {
+			return "", fmt.Errorf("failed to marshal countries: %w", err)
+		}
+		return string(jsonData), nil
+	default:
+		return "", fmt.Errorf("unknown resource URI: %s", uri)
 	}
 }

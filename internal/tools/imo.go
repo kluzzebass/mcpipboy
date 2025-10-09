@@ -1,6 +1,7 @@
 package tools
 
 import (
+	"encoding/json"
 	"fmt"
 	"math/rand"
 	"strconv"
@@ -215,6 +216,91 @@ func (i *IMOTool) GetOutputSchema() map[string]interface{} {
 				"description": "Generated IMO number(s) or validation result",
 			},
 		},
+	}
+}
+
+// GetResources returns the list of resources this tool provides
+func (i *IMOTool) GetResources() []Resource {
+	return []Resource{
+		{
+			Name:     "IMO Algorithm",
+			URI:      "imo://algorithm",
+			MIMEType: "application/json",
+		},
+		{
+			Name:     "IMO Examples",
+			URI:      "imo://examples",
+			MIMEType: "application/json",
+		},
+	}
+}
+
+// ReadResource reads a specific resource by URI
+func (i *IMOTool) ReadResource(uri string) (string, error) {
+	switch uri {
+	case "imo://algorithm":
+		// Return IMO algorithm documentation
+		algorithm := map[string]interface{}{
+			"name":        "IMO Number Algorithm",
+			"description": "International Maritime Organization number validation and generation",
+			"format":      "7-digit number with check digit",
+			"algorithm": map[string]interface{}{
+				"description": "Weighted sum algorithm for check digit calculation",
+				"weights":     []int{7, 6, 5, 4, 3, 2, 1},
+				"formula":     "Check digit = (7×d1 + 6×d2 + 5×d3 + 4×d4 + 3×d5 + 2×d6) mod 10",
+				"example": map[string]interface{}{
+					"digits":      []int{1, 2, 3, 4, 5, 6},
+					"calculation": "7×1 + 6×2 + 5×3 + 4×4 + 3×5 + 2×6 = 7 + 12 + 15 + 16 + 15 + 12 = 77",
+					"check_digit": "77 mod 10 = 7",
+					"result":      "1234567",
+				},
+			},
+			"validation": map[string]interface{}{
+				"description": "To validate an IMO number, calculate the check digit and compare with the last digit",
+				"steps": []string{
+					"Extract the first 6 digits",
+					"Apply the weighted sum formula",
+					"Calculate check digit (sum mod 10)",
+					"Compare with the 7th digit",
+				},
+			},
+		}
+		jsonData, err := json.Marshal(algorithm)
+		if err != nil {
+			return "", fmt.Errorf("failed to marshal algorithm: %w", err)
+		}
+		return string(jsonData), nil
+	case "imo://examples":
+		// Return example IMO numbers
+		examples := []map[string]interface{}{
+			{
+				"imo":         "1234567",
+				"valid":       true,
+				"description": "Example valid IMO number",
+			},
+			{
+				"imo":         "9074729",
+				"valid":       true,
+				"description": "Another valid IMO number",
+			},
+			{
+				"imo":         "1234568",
+				"valid":       false,
+				"description": "Example invalid IMO number (wrong check digit)",
+			},
+			{
+				"imo":         "123456",
+				"valid":       false,
+				"description": "Invalid IMO number (too short)",
+			},
+		}
+		jsonData, err := json.Marshal(examples)
+		if err != nil {
+			return "", fmt.Errorf("failed to marshal examples: %w", err)
+		}
+		return string(jsonData), nil
+	default:
+		return "", fmt.Errorf("unknown resource URI: %s", uri)
 	}
 }
 

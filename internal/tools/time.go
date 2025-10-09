@@ -1,6 +1,7 @@
 package tools
 
 import (
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -206,6 +207,130 @@ func (t *TimeTool) GetOutputSchema() map[string]interface{} {
 				"description": "Formatted time string or duration information",
 			},
 		},
+	}
+}
+
+// GetResources returns the list of resources this tool provides
+func (t *TimeTool) GetResources() []Resource {
+	return []Resource{
+		{
+			Name:     "Time Formats",
+			URI:      "time://formats",
+			MIMEType: "application/json",
+		},
+		{
+			Name:     "Time Examples",
+			URI:      "time://examples",
+			MIMEType: "application/json",
+		},
+	}
+}
+
+// ReadResource reads a specific resource by URI
+func (t *TimeTool) ReadResource(uri string) (string, error) {
+	switch uri {
+	case "time://formats":
+		// Return supported output formats
+		formats := []map[string]interface{}{
+			{
+				"format":      "iso",
+				"name":        "ISO 8601",
+				"description": "ISO 8601 format (2006-01-02T15:04:05Z07:00)",
+				"example":     "2025-01-09T14:30:00Z",
+			},
+			{
+				"format":      "rfc3339",
+				"name":        "RFC 3339",
+				"description": "RFC 3339 format (2006-01-02T15:04:05Z07:00)",
+				"example":     "2025-01-09T14:30:00Z",
+			},
+			{
+				"format":      "unix",
+				"name":        "Unix Timestamp",
+				"description": "Unix timestamp in seconds",
+				"example":     "1736430600",
+			},
+			{
+				"format":      "date",
+				"name":        "Date Only",
+				"description": "Date in YYYY-MM-DD format",
+				"example":     "2025-01-09",
+			},
+			{
+				"format":      "datetime",
+				"name":        "Date and Time",
+				"description": "Date and time in YYYY-MM-DD HH:MM:SS format",
+				"example":     "2025-01-09 14:30:00",
+			},
+			{
+				"format":      "time",
+				"name":        "Time Only",
+				"description": "Time in HH:MM:SS format",
+				"example":     "14:30:00",
+			},
+			{
+				"format":      "weekday",
+				"name":        "Day of Week",
+				"description": "Day of the week",
+				"example":     "Thursday",
+			},
+		}
+		jsonData, err := json.Marshal(formats)
+		if err != nil {
+			return "", fmt.Errorf("failed to marshal formats: %w", err)
+		}
+		return string(jsonData), nil
+	case "time://examples":
+		// Return example time strings that can be parsed
+		examples := []map[string]interface{}{
+			{
+				"input":       "now",
+				"description": "Current time",
+			},
+			{
+				"input":       "today",
+				"description": "Today at midnight",
+			},
+			{
+				"input":       "2025-01-09",
+				"description": "Date in YYYY-MM-DD format",
+			},
+			{
+				"input":       "2025-01-09T14:30:00Z",
+				"description": "ISO 8601 format with UTC timezone",
+			},
+			{
+				"input":       "January 9, 2025",
+				"description": "Natural language date",
+			},
+			{
+				"input":       "yesterday",
+				"description": "Yesterday",
+			},
+			{
+				"input":       "tomorrow",
+				"description": "Tomorrow",
+			},
+			{
+				"input":       "next Monday",
+				"description": "Next occurrence of Monday",
+			},
+			{
+				"input":       "last Friday",
+				"description": "Last occurrence of Friday",
+			},
+			{
+				"input":       "3 days ago",
+				"description": "Relative time expression",
+			},
+		}
+		jsonData, err := json.Marshal(examples)
+		if err != nil {
+			return "", fmt.Errorf("failed to marshal examples: %w", err)
+		}
+		return string(jsonData), nil
+	default:
+		return "", fmt.Errorf("unknown resource URI: %s", uri)
 	}
 }
 

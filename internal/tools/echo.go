@@ -66,3 +66,13 @@ func (e *EchoTool) GetOutputSchema() map[string]interface{} {
 		},
 	}
 }
+
+// GetResources returns the list of resources this tool provides
+func (e *EchoTool) GetResources() []Resource {
+	return []Resource{}
+}
+
+// ReadResource reads a specific resource by URI
+func (e *EchoTool) ReadResource(uri string) (string, error) {
+	return "", fmt.Errorf("no resources available for echo tool")
+}

@@ -1,6 +1,7 @@
 package tools
 
 import (
+	"encoding/json"
 	"fmt"
 	"math/rand"
 	"strings"
@@ -289,5 +290,106 @@ func (r *RandomTool) GetOutputSchema() map[string]interface{} {
 				},
 			},
 		},
+	}
+}
+
+// GetResources returns the list of resources this tool provides
+func (r *RandomTool) GetResources() []Resource {
+	return []Resource{
+		{
+			Name:     "Random Types",
+			URI:      "random://types",
+			MIMEType: "application/json",
+		},
+		{
+			Name:     "Random Examples",
+			URI:      "random://examples",
+			MIMEType: "application/json",
+		},
+	}
+}
+
+// ReadResource reads a specific resource by URI
+func (r *RandomTool) ReadResource(uri string) (string, error) {
+	switch uri {
+	case "random://types":
+		// Return supported random types
+		types := []map[string]interface{}{
+			{
+				"type":        "integer",
+				"name":        "Integer",
+				"description": "Random integers within a specified range",
+				"parameters":  []string{"min", "max", "count"},
+				"example":     "Random integer between 1 and 100",
+			},
+			{
+				"type":        "float",
+				"name":        "Float",
+				"description": "Random floating-point numbers within a specified range",
+				"parameters":  []string{"min", "max", "precision", "count"},
+				"example":     "Random float between 0.0 and 1.0 with 2 decimal places",
+			},
+			{
+				"type":        "boolean",
+				"name":        "Boolean",
+				"description": "Random true/false values",
+				"parameters":  []string{"count"},
+				"example":     "Random boolean values",
+			},
+		}
+		jsonData, err := json.Marshal(types)
+		if err != nil {
+			return "", fmt.Errorf("failed to marshal types: %w", err)
+		}
+		return string(jsonData), nil
+	case "random://examples":
+		// Return example usage patterns
+		examples := []map[string]interface{}{
+			{
+				"type":        "integer",
+				"description": "Generate 5 random integers between 1 and 100",
+				"parameters": map[string]interface{}{
+					"type":  "integer",
+					"min":   1,
+					"max":   100,
+					"count": 5,
+				},
+			},
+			{
+				"type":        "float",
+				"description": "Generate 3 random floats between 0.0 and 1.0 with 2 decimal places",
+				"parameters": map[string]interface{}{
+					"type":      "float",
+					"min":       0.0,
+					"max":       1.0,
+					"precision": 2,
+					"count":     3,
+				},
+			},
+			{
+				"type":        "boolean",
+				"description": "Generate 10 random boolean values",
+				"parameters": map[string]interface{}{
+					"type":  "boolean",
+					"count": 10,
+				},
+			},
+			{
+				"type":        "integer",
+				"description": "Generate a single random integer between -50 and 50",
+				"parameters": map[string]interface{}{
+					"type": "integer",
+					"min":  -50,
+					"max":  50,
+				},
+			},
+		}
+		jsonData, err := json.Marshal(examples)
+		if err != nil {
+			return "", fmt.Errorf("failed to marshal examples: %w", err)
+		}
+		return string(jsonData), nil
+	default:
+		return "", fmt.Errorf("unknown resource URI: %s", uri)
 	}
 }

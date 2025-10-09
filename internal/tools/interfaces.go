@@ -25,6 +25,19 @@ type Tool interface {
 
 	// GetOutputSchema returns the JSON schema for tool output
 	GetOutputSchema() map[string]interface{}
+
+	// GetResources returns the list of resources this tool provides
+	GetResources() []Resource
+
+	// ReadResource reads a specific resource by URI
+	ReadResource(uri string) (string, error)
+}
+
+// Resource represents a resource that a tool can provide
+type Resource struct {
+	Name     string `json:"name"`
+	URI      string `json:"uri"`
+	MIMEType string `json:"mimeType"`
 }
 
 // ToolMetadata contains metadata about a tool

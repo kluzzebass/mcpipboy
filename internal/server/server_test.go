@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"testing"
 	"time"
+
+	"github.com/kluzzebass/mcpipboy/internal/tools"
 )
 
 // MockTool implements the tools.Tool interface for testing
@@ -46,6 +48,14 @@ func (m *MockTool) GetInputSchema() map[string]interface{} {
 
 func (m *MockTool) GetOutputSchema() map[string]interface{} {
 	return m.outputSchema
+}
+
+func (m *MockTool) GetResources() []tools.Resource {
+	return []tools.Resource{}
+}
+
+func (m *MockTool) ReadResource(uri string) (string, error) {
+	return "", fmt.Errorf("no resources available for mock tool")
 }
 
 func TestNewServer(t *testing.T) {

@@ -2,6 +2,7 @@ package tools
 
 import (
 	"crypto/rand"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -414,5 +415,125 @@ func (u *UUIDTool) GetOutputSchema() map[string]interface{} {
 				},
 			},
 		},
+	}
+}
+
+// GetResources returns the list of resources this tool provides
+func (u *UUIDTool) GetResources() []Resource {
+	return []Resource{
+		{
+			Name:     "UUID Versions",
+			URI:      "uuid://versions",
+			MIMEType: "application/json",
+		},
+		{
+			Name:     "UUID Namespaces",
+			URI:      "uuid://namespaces",
+			MIMEType: "application/json",
+		},
+		{
+			Name:     "UUID Examples",
+			URI:      "uuid://examples",
+			MIMEType: "application/json",
+		},
+	}
+}
+
+// ReadResource reads a specific resource by URI
+func (u *UUIDTool) ReadResource(uri string) (string, error) {
+	switch uri {
+	case "uuid://versions":
+		// Return supported UUID versions with descriptions
+		versions := []map[string]interface{}{
+			{
+				"version":         "v1",
+				"name":            "Time-based UUID",
+				"description":     "Based on timestamp and MAC address",
+				"characteristics": []string{"time-ordered", "includes MAC address", "predictable"},
+			},
+			{
+				"version":         "v4",
+				"name":            "Random UUID",
+				"description":     "Randomly generated UUID",
+				"characteristics": []string{"cryptographically random", "unpredictable", "most common"},
+			},
+			{
+				"version":         "v5",
+				"name":            "Name-based UUID (SHA-1)",
+				"description":     "Generated from namespace and name using SHA-1",
+				"characteristics": []string{"deterministic", "requires namespace", "requires name"},
+			},
+			{
+				"version":         "v7",
+				"name":            "Time-ordered UUID",
+				"description":     "Time-ordered with random component",
+				"characteristics": []string{"time-ordered", "sortable", "includes timestamp"},
+			},
+		}
+		jsonData, err := json.Marshal(versions)
+		if err != nil {
+			return "", fmt.Errorf("failed to marshal versions: %w", err)
+		}
+		return string(jsonData), nil
+	case "uuid://namespaces":
+		// Return common namespace UUIDs
+		namespaces := []map[string]interface{}{
+			{
+				"name":        "DNS",
+				"uuid":        "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+				"description": "Domain Name System namespace",
+			},
+			{
+				"name":        "URL",
+				"uuid":        "6ba7b811-9dad-11d1-80b4-00c04fd430c8",
+				"description": "URL namespace",
+			},
+			{
+				"name":        "OID",
+				"uuid":        "6ba7b812-9dad-11d1-80b4-00c04fd430c8",
+				"description": "ISO OID namespace",
+			},
+			{
+				"name":        "X500",
+				"uuid":        "6ba7b814-9dad-11d1-80b4-00c04fd430c8",
+				"description": "X.500 Distinguished Name namespace",
+			},
+		}
+		jsonData, err := json.Marshal(namespaces)
+		if err != nil {
+			return "", fmt.Errorf("failed to marshal namespaces: %w", err)
+		}
+		return string(jsonData), nil
+	case "uuid://examples":
+		// Return example UUIDs for each version
+		examples := []map[string]interface{}{
+			{
+				"version":     "v1",
+				"example":     "550e8400-e29b-11d4-a716-446655440000",
+				"description": "Time-based UUID with MAC address",
+			},
+			{
+				"version":     "v4",
+				"example":     "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+				"description": "Random UUID",
+			},
+			{
+				"version":     "v5",
+				"example":     "886313e1-3b8a-5372-9b90-0c9aee199e5d",
+				"description": "Name-based UUID (example.com in DNS namespace)",
+			},
+			{
+				"version":     "v7",
+				"example":     "0188f7f2-8b00-7c65-9c1d-0b0b0b0b0b0b",
+				"description": "Time-ordered UUID",
+			},
+		}
+		jsonData, err := json.Marshal(examples)
+		if err != nil {
+			return "", fmt.Errorf("failed to marshal examples: %w", err)
+		}
+		return string(jsonData), nil
+	default:
+		return "", fmt.Errorf("unknown resource URI: %s", uri)
 	}
 }

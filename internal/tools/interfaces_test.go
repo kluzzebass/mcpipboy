@@ -46,6 +46,14 @@ func (m *MockTool) GetOutputSchema() map[string]interface{} {
 	return m.outputSchema
 }
 
+func (m *MockTool) GetResources() []Resource {
+	return []Resource{}
+}
+
+func (m *MockTool) ReadResource(uri string) (string, error) {
+	return "", fmt.Errorf("no resources available for mock tool")
+}
+
 func TestToolRegistry(t *testing.T) {
 	registry := NewToolRegistry()
 

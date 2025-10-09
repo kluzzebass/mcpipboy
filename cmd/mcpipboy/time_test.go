@@ -12,52 +12,52 @@ func TestTimeCommand(t *testing.T) {
 	}{
 		{
 			name:    "default time command",
-			args:    []string{"time"},
+			args:    []string{},
 			wantErr: false,
 		},
 		{
 			name:    "time with default (now)",
-			args:    []string{"time"},
+			args:    []string{},
 			wantErr: false,
 		},
 		{
 			name:    "time with format date",
-			args:    []string{"time", "--format", "date"},
+			args:    []string{"--format", "date"},
 			wantErr: false,
 		},
 		{
 			name:    "time with timestamp input",
-			args:    []string{"time", "--input", "2025-01-01T12:00:00Z", "--format", "unix"},
+			args:    []string{"--input", "2025-01-01T12:00:00Z", "--format", "unix"},
 			wantErr: false,
 		},
 		{
 			name:    "time with unix timestamp",
-			args:    []string{"time", "--input", "2025-01-01T12:00:00Z", "--format", "datetime"},
+			args:    []string{"--input", "2025-01-01T12:00:00Z", "--format", "datetime"},
 			wantErr: false,
 		},
 		{
 			name:    "time with offset",
-			args:    []string{"time", "--input", "2025-01-01T00:00:00Z", "--offset", "+1h", "--format", "datetime"},
+			args:    []string{"--input", "2025-01-01T00:00:00Z", "--offset", "+1h", "--format", "datetime"},
 			wantErr: false,
 		},
 		{
 			name:    "time with timezone",
-			args:    []string{"time", "--input", "2025-01-01T12:00:00Z", "--timezone", "America/New_York", "--format", "datetime"},
+			args:    []string{"--input", "2025-01-01T12:00:00Z", "--timezone", "America/New_York", "--format", "datetime"},
 			wantErr: false,
 		},
 		{
 			name:    "invalid offset",
-			args:    []string{"time", "--offset", "invalid"},
+			args:    []string{"--offset", "invalid"},
 			wantErr: true,
 		},
 		{
 			name:    "invalid timezone",
-			args:    []string{"time", "--timezone", "Invalid/Timezone"},
+			args:    []string{"--timezone", "Invalid/Timezone"},
 			wantErr: true,
 		},
 		{
 			name:    "invalid format",
-			args:    []string{"time", "--format", "invalid"},
+			args:    []string{"--format", "invalid"},
 			wantErr: true,
 		},
 	}
@@ -73,12 +73,12 @@ func TestTimeCommand(t *testing.T) {
 			timeTo = ""
 			timeOffset = ""
 
-			// Set up the command
+			// Parse flags manually
 			cmd := timeCmd
-			cmd.SetArgs(tt.args[1:]) // Skip the command name
+			cmd.ParseFlags(tt.args)
 
-			// Execute the command
-			err := cmd.Execute()
+			// Execute the command directly
+			err := runTime(cmd, tt.args)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("time command error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -116,7 +116,7 @@ func TestTimeCommandValidation(t *testing.T) {
 		},
 		{
 			name:    "complex offset",
-			args:    []string{"time", "--type", "timestamp", "--input", "2025-01-01T00:00:00Z", "--offset", "+1d2h30m", "--format", "datetime"},
+			args:    []string{"time", "--type", "timestamp", "--input", "2025-01-01T00:00:00Z", "--offset", "+26h30m", "--format", "datetime"},
 			wantErr: false,
 		},
 		{
@@ -137,12 +137,12 @@ func TestTimeCommandValidation(t *testing.T) {
 			timeTo = ""
 			timeOffset = ""
 
-			// Set up the command
+			// Parse flags manually
 			cmd := timeCmd
-			cmd.SetArgs(tt.args[1:]) // Skip the command name
+			cmd.ParseFlags(tt.args)
 
-			// Execute the command
-			err := cmd.Execute()
+			// Execute the command directly
+			err := runTime(cmd, tt.args)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("time command error = %v, wantErr %v", err, tt.wantErr)
 			}

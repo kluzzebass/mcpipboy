@@ -282,15 +282,6 @@ func (m *MMSITool) getMIDs(countryCode string) []int {
 	return nil
 }
 
-// getMID returns the first MID for a country (for backward compatibility)
-func (m *MMSITool) getMID(countryCode string) int {
-	mids := m.getMIDs(countryCode)
-	if len(mids) > 0 {
-		return mids[0]
-	}
-	return 0
-}
-
 // getCountryName returns the country name for a MID
 func (m *MMSITool) getCountryName(mid int) string {
 	for _, country := range m.countries {
@@ -524,7 +515,7 @@ func (m *MMSITool) populateTypes() {
 				return mmsi >= 980000000 && mmsi <= 989999999
 			},
 			Generate: func(countryCode string) (int, error) {
-				return m.generateCraftAssociated(countryCode)
+				return m.generateCraftAssociated()
 			},
 		},
 		{
@@ -535,7 +526,7 @@ func (m *MMSITool) populateTypes() {
 				return mmsi >= 990000000 && mmsi <= 999999999
 			},
 			Generate: func(countryCode string) (int, error) {
-				return m.generateNavigationalAid(countryCode)
+				return m.generateNavigationalAid()
 			},
 		},
 		{
@@ -649,36 +640,16 @@ func (m *MMSITool) generateCoastStation(countryCode string, group bool) (int, er
 }
 
 // generateCraftAssociated generates a craft associated MMSI
-func (m *MMSITool) generateCraftAssociated(countryCode string) (int, error) {
-	var allMIDs []int
-	if countryCode != "" {
-		allMIDs = m.getMIDs(countryCode)
-		if len(allMIDs) == 0 {
-			return 0, fmt.Errorf("invalid country code: %s", countryCode)
-		}
-	} else {
-		allMIDs = m.allMIDs
-	}
-
-	// Craft associated: 98xxxxxxx
+func (m *MMSITool) generateCraftAssociated() (int, error) {
+	// Craft associated: 98xxxxxxx (fixed format, doesn't depend on country)
 	remaining := rand.Intn(10000000) // 0 to 9999999
 
 	return 980000000 + remaining, nil
 }
 
 // generateNavigationalAid generates a navigational aid MMSI
-func (m *MMSITool) generateNavigationalAid(countryCode string) (int, error) {
-	var allMIDs []int
-	if countryCode != "" {
-		allMIDs = m.getMIDs(countryCode)
-		if len(allMIDs) == 0 {
-			return 0, fmt.Errorf("invalid country code: %s", countryCode)
-		}
-	} else {
-		allMIDs = m.allMIDs
-	}
-
-	// Navigational aid: 99xxxxxxx
+func (m *MMSITool) generateNavigationalAid() (int, error) {
+	// Navigational aid: 99xxxxxxx (fixed format, doesn't depend on country)
 	remaining := rand.Intn(10000000) // 0 to 9999999
 
 	return 990000000 + remaining, nil

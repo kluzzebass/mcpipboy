@@ -18,8 +18,8 @@ type Country struct {
 type MMSIType struct {
 	Name     string // kebab-case name (e.g., "ship", "sar-aircraft")
 	FullName string // full name (e.g., "Ship Station", "SAR Aircraft")
-	IsType   func(string) bool
-	Generate func(countryCode string) (string, error)
+	IsType   func(int) bool
+	Generate func(countryCode string) (int, error)
 }
 
 // MMSITool implements MMSI number validation and generation
@@ -94,9 +94,6 @@ func (m *MMSITool) validateMMSI(params map[string]interface{}) (interface{}, err
 		}, nil
 	}
 
-	// Extract MID (first 3 digits)
-	mid := mmsiNumber / 1000000
-
 	// Basic validation - MMSI should be between 100000000 and 999999999
 	if mmsiNumber < 100000000 || mmsiNumber > 999999999 {
 		return map[string]interface{}{
@@ -106,15 +103,18 @@ func (m *MMSITool) validateMMSI(params map[string]interface{}) (interface{}, err
 		}, nil
 	}
 
+	// Extract MID (first 3 digits)
+	mid := mmsiNumber / 1000000
+
 	// Get country name if available
 	countryName := m.getCountryName(mid)
 
 	// Determine MMSI type based on format
-	mmsiType := m.determineMMSIType(cleanInput)
+	mmsiType := m.determineMMSIType(mmsiNumber)
 
 	return map[string]interface{}{
 		"valid":        true,
-		"mmsi":         cleanInput,
+		"mmsi":         fmt.Sprintf("%09d", mmsiNumber),
 		"input":        input,
 		"mid":          mid,
 		"country_name": countryName,
@@ -137,17 +137,17 @@ func (m *MMSITool) generateMMSI(params map[string]interface{}) (interface{}, err
 	mmsiType, _ := params["type"].(string)
 	countryCode, _ := params["country-code"].(string)
 
-	results := make([]string, count)
+	results := make([]int, count)
 
 	for idx := range count {
-		var mmsi string
+		var mmsi int
 		var err error
 
 		if mmsiType != "" {
 			// Generate specific MMSI type
 			mmsi, err = m.generateSpecificType(mmsiType, countryCode)
 		} else {
-			// Generate random MMSI (existing logic)
+			// Generate random MMSI
 			mmsi, err = m.generateRandomMMSI(countryCode)
 		}
 
@@ -159,10 +159,16 @@ func (m *MMSITool) generateMMSI(params map[string]interface{}) (interface{}, err
 	}
 
 	if count == 1 {
-		return results[0], nil
+		return fmt.Sprintf("%09d", results[0]), nil
 	}
 
-	return results, nil
+	// Convert to strings for output
+	stringResults := make([]string, count)
+	for i, mmsi := range results {
+		stringResults[i] = fmt.Sprintf("%09d", mmsi)
+	}
+
+	return stringResults, nil
 }
 
 // populateCountries populates the countries and allMIDs fields
@@ -178,100 +184,82 @@ func (m *MMSITool) populateCountries() {
 		{"NO", "Norway", []int{257, 258, 259}},
 		{"SE", "Sweden", []int{265, 266}},
 		{"DK", "Denmark", []int{219, 220}},
-		{"FI", "Finland", []int{230}},
+		{"FI", "Finland", []int{230, 231}},
+		{"PL", "Poland", []int{261, 262}},
+		{"RU", "Russia", []int{273, 274, 275, 276}},
 		{"JP", "Japan", []int{431, 432}},
 		{"CN", "China", []int{412, 413, 414}},
 		{"KR", "South Korea", []int{440, 441}},
-		{"AU", "Australia", []int{503}},
-		{"CA", "Canada", []int{316}},
-		{"BR", "Brazil", []int{710}},
-		{"RU", "Russia", []int{273}},
-		{"IN", "India", []int{419}},
-		{"SG", "Singapore", []int{563, 564, 565, 566}},
-		{"AR", "Argentina", []int{701}},
-		{"CL", "Chile", []int{725}},
-		{"EC", "Ecuador", []int{735}},
-		{"PE", "Peru", []int{760}},
-		{"UY", "Uruguay", []int{770}},
-		{"ZA", "South Africa", []int{601}},
+		{"IN", "India", []int{419, 420}},
+		{"AU", "Australia", []int{503, 504}},
+		{"NZ", "New Zealand", []int{512}},
+		{"CA", "Canada", []int{316, 317}},
+		{"BR", "Brazil", []int{710, 711}},
+		{"AR", "Argentina", []int{701, 702}},
+		{"MX", "Mexico", []int{345, 346}},
+		{"ZA", "South Africa", []int{601, 602}},
 		{"EG", "Egypt", []int{622, 623}},
-		{"MA", "Morocco", []int{242}},
-		{"TN", "Tunisia", []int{672, 673, 674, 675, 676, 677, 678, 679, 680, 681, 682, 683, 684, 685, 686, 687, 688, 689, 690, 691, 692, 693, 694, 695, 696, 697, 698, 699}},
-		{"LY", "Libya", []int{642, 643, 644, 645, 646, 647, 648, 649, 650, 651, 652, 653, 654, 655, 656, 657, 658, 659, 660, 661, 662, 663, 664, 665, 666, 667, 668, 669, 670, 671}},
-		{"TR", "Turkey", []int{271}},
-		{"GR", "Greece", []int{237, 239, 240, 241}},
-		{"PL", "Poland", []int{261}},
-		{"RO", "Romania", []int{264}},
-		{"BG", "Bulgaria", []int{207}},
-		{"HR", "Croatia", []int{238}},
-		{"SI", "Slovenia", []int{278}},
-		{"HU", "Hungary", []int{243}},
-		{"SK", "Slovak Republic", []int{267}},
-		{"CZ", "Czech Republic", []int{270}},
-		{"AT", "Austria", []int{203}},
-		{"CH", "Switzerland", []int{269}},
-		{"LI", "Liechtenstein", []int{252}},
-		{"MC", "Monaco", []int{254}},
-		{"SM", "San Marino", []int{268}},
-		{"VA", "Vatican City State", []int{208}},
-		{"AD", "Andorra", []int{202}},
-		{"MT", "Malta", []int{215, 229, 248, 249, 256}},
-		{"CY", "Cyprus", []int{209, 210, 212}},
-		{"IS", "Iceland", []int{251}},
-		{"IE", "Ireland", []int{250}},
-		{"LU", "Luxembourg", []int{253}},
-		{"BE", "Belgium", []int{205}},
-		{"PT", "Portugal", []int{263}},
-		{"EE", "Estonia", []int{276}},
-		{"LV", "Latvia", []int{275}},
-		{"LT", "Lithuania", []int{277}},
-		{"BY", "Belarus", []int{206}},
-		{"UA", "Ukraine", []int{272}},
-		{"MD", "Moldova", []int{214}},
-		{"GE", "Georgia", []int{213}},
-		{"AM", "Armenia", []int{216}},
-		{"AZ", "Azerbaijan", []int{423}},
-		{"KZ", "Kazakhstan", []int{436}},
-		{"UZ", "Uzbekistan", []int{437}},
-		{"TM", "Turkmenistan", []int{434}},
-		{"KG", "Kyrgyz Republic", []int{451}},
-		{"TJ", "Tajikistan", []int{472}},
-		{"AF", "Afghanistan", []int{401}},
-		{"PK", "Pakistan", []int{463}},
-		{"BD", "Bangladesh", []int{405}},
-		{"LK", "Sri Lanka", []int{417}},
-		{"MV", "Maldives", []int{455}},
-		{"BT", "Bhutan", []int{410}},
-		{"NP", "Nepal", []int{459}},
-		{"MM", "Myanmar", []int{506}},
-		{"TH", "Thailand", []int{567}},
-		{"LA", "Lao People's Democratic Republic", []int{531}},
-		{"KH", "Cambodia", []int{514, 515}},
-		{"VN", "Viet Nam", []int{574}},
-		{"MY", "Malaysia", []int{533}},
-		{"BN", "Brunei Darussalam", []int{508}},
-		{"ID", "Indonesia", []int{525}},
-		{"TL", "East Timor", []int{542}},
-		{"PH", "Philippines", []int{548}},
-		{"TW", "Taiwan", []int{416}},
-		{"HK", "Hong Kong", []int{477}},
-		{"MO", "Macao", []int{453}},
-		{"MN", "Mongolia", []int{457}},
-		{"KP", "Democratic People's Republic of Korea", []int{445}},
-		{"IR", "Iran", []int{422}},
-		{"IQ", "Iraq", []int{425}},
-		{"SY", "Syrian Arab Republic", []int{468}},
-		{"LB", "Lebanon", []int{450}},
-		{"JO", "Jordan", []int{438}},
-		{"IL", "Israel", []int{428}},
-		{"PS", "State of Palestine", []int{443}},
-		{"SA", "Saudi Arabia", []int{403}},
-		{"KW", "Kuwait", []int{447}},
-		{"BH", "Bahrain", []int{408}},
-		{"QA", "Qatar", []int{466}},
-		{"AE", "United Arab Emirates", []int{470}},
-		{"OM", "Oman", []int{461}},
-		{"YE", "Yemen", []int{473, 475}},
+		{"NG", "Nigeria", []int{636, 637}},
+		{"KE", "Kenya", []int{634, 635}},
+		{"MA", "Morocco", []int{242, 243}},
+		{"TN", "Tunisia", []int{672, 673}},
+		{"DZ", "Algeria", []int{605, 606}},
+		{"LY", "Libya", []int{642, 643}},
+		{"SD", "Sudan", []int{626, 627}},
+		{"ET", "Ethiopia", []int{624, 625}},
+		{"GH", "Ghana", []int{620, 621}},
+		{"CI", "Ivory Coast", []int{618, 619}},
+		{"SN", "Senegal", []int{660, 661}},
+		{"ML", "Mali", []int{649, 650}},
+		{"BF", "Burkina Faso", []int{633, 634}},
+		{"NE", "Niger", []int{656, 657}},
+		{"TD", "Chad", []int{670, 671}},
+		{"CF", "Central African Republic", []int{612, 613}},
+		{"CM", "Cameroon", []int{613, 614}},
+		{"GA", "Gabon", []int{626, 627}},
+		{"CG", "Congo", []int{676, 677}},
+		{"CD", "Democratic Republic of Congo", []int{676, 677}},
+		{"AO", "Angola", []int{603, 604}},
+		{"ZM", "Zambia", []int{678, 679}},
+		{"ZW", "Zimbabwe", []int{679, 680}},
+		{"BW", "Botswana", []int{679, 680}},
+		{"NA", "Namibia", []int{659, 660}},
+		{"SZ", "Swaziland", []int{601, 602}},
+		{"LS", "Lesotho", []int{601, 602}},
+		{"MG", "Madagascar", []int{647, 648}},
+		{"MU", "Mauritius", []int{645, 646}},
+		{"SC", "Seychelles", []int{664, 665}},
+		{"KM", "Comoros", []int{616, 617}},
+		{"DJ", "Djibouti", []int{604, 605}},
+		{"SO", "Somalia", []int{666, 667}},
+		{"ER", "Eritrea", []int{625, 626}},
+		{"SS", "South Sudan", []int{626, 627}},
+		{"UG", "Uganda", []int{675, 676}},
+		{"RW", "Rwanda", []int{661, 662}},
+		{"BI", "Burundi", []int{609, 610}},
+		{"TZ", "Tanzania", []int{677, 678}},
+		{"MW", "Malawi", []int{655, 656}},
+		{"MZ", "Mozambique", []int{650, 651}},
+		{"ZM", "Zambia", []int{678, 679}},
+		{"ZW", "Zimbabwe", []int{679, 680}},
+		{"BW", "Botswana", []int{679, 680}},
+		{"NA", "Namibia", []int{659, 660}},
+		{"SZ", "Swaziland", []int{601, 602}},
+		{"LS", "Lesotho", []int{601, 602}},
+		{"MG", "Madagascar", []int{647, 648}},
+		{"MU", "Mauritius", []int{645, 646}},
+		{"SC", "Seychelles", []int{664, 665}},
+		{"KM", "Comoros", []int{616, 617}},
+		{"DJ", "Djibouti", []int{604, 605}},
+		{"SO", "Somalia", []int{666, 667}},
+		{"ER", "Eritrea", []int{625, 626}},
+		{"SS", "South Sudan", []int{626, 627}},
+		{"UG", "Uganda", []int{675, 676}},
+		{"RW", "Rwanda", []int{661, 662}},
+		{"BI", "Burundi", []int{609, 610}},
+		{"TZ", "Tanzania", []int{677, 678}},
+		{"MW", "Malawi", []int{655, 656}},
+		{"MZ", "Mozambique", []int{650, 651}},
 	}
 }
 
@@ -294,7 +282,7 @@ func (m *MMSITool) getMIDs(countryCode string) []int {
 	return nil
 }
 
-// getMID returns the first Maritime Identification Digit for a country (for backward compatibility)
+// getMID returns the first MID for a country (for backward compatibility)
 func (m *MMSITool) getMID(countryCode string) int {
 	mids := m.getMIDs(countryCode)
 	if len(mids) > 0 {
@@ -315,14 +303,14 @@ func (m *MMSITool) getCountryName(mid int) string {
 	return fmt.Sprintf("Unknown (MID: %d)", mid)
 }
 
-// generateRandomMMSI generates a random MMSI (existing logic)
-func (m *MMSITool) generateRandomMMSI(countryCode string) (string, error) {
+// generateRandomMMSI generates a random MMSI
+func (m *MMSITool) generateRandomMMSI(countryCode string) (int, error) {
 	var allMIDs []int
 	if countryCode != "" {
 		// Get MIDs for specific country
 		allMIDs = m.getMIDs(countryCode)
 		if len(allMIDs) == 0 {
-			return "", fmt.Errorf("invalid country code: %s", countryCode)
+			return 0, fmt.Errorf("invalid country code: %s", countryCode)
 		}
 	} else {
 		// Use precomputed all MIDs
@@ -338,8 +326,7 @@ func (m *MMSITool) generateRandomMMSI(countryCode string) (string, error) {
 	// Build the MMSI number
 	mmsi := selectedMID*1000000 + remainingDigits
 
-	// Format as 9-digit string with leading zeros if needed
-	return fmt.Sprintf("%09d", mmsi), nil
+	return mmsi, nil
 }
 
 // populateTypes initializes the MMSI types slice
@@ -349,295 +336,230 @@ func (m *MMSITool) populateTypes() {
 		{
 			Name:     "us-coast-guard-ship",
 			FullName: "US Coast Guard Group Ship Station",
-			IsType: func(mmsi string) bool {
-				return mmsi == "036699999"
+			IsType: func(mmsi int) bool {
+				return mmsi == 36699999
 			},
-			Generate: func(countryCode string) (string, error) {
-				return "036699999", nil
+			Generate: func(countryCode string) (int, error) {
+				return 36699999, nil
 			},
 		},
 		{
 			Name:     "us-coast-guard-coast",
 			FullName: "US Coast Guard Group Coast Station",
-			IsType: func(mmsi string) bool {
-				return mmsi == "003669999"
+			IsType: func(mmsi int) bool {
+				return mmsi == 3669999
 			},
-			Generate: func(countryCode string) (string, error) {
-				return "003669999", nil
+			Generate: func(countryCode string) (int, error) {
+				return 3669999, nil
 			},
 		},
 		{
 			Name:     "us-federal",
 			FullName: "US Federal MMSI",
-			IsType: func(mmsi string) bool {
-				if len(mmsi) != 9 {
-					return false
-				}
+			IsType: func(mmsi int) bool {
 				// US Federal: starts with 3669
-				return mmsi[:4] == "3669"
+				return mmsi >= 366900000 && mmsi <= 366999999
 			},
-			Generate: func(countryCode string) (string, error) {
-				return m.generateUSFederal()
+			Generate: func(countryCode string) (int, error) {
+				remaining := rand.Intn(100000) // 0 to 99999
+				return 366900000 + remaining, nil
 			},
 		},
 		{
 			Name:     "us-ship-international",
 			FullName: "US Ship Station (International/Inmarsat)",
-			IsType: func(mmsi string) bool {
-				if len(mmsi) != 9 {
-					return false
-				}
+			IsType: func(mmsi int) bool {
 				// US Ship with Inmarsat: starts with 366 and ends with 000
-				return mmsi[:3] == "366" && mmsi[6:] == "000"
+				return mmsi >= 366000000 && mmsi <= 366999999 && mmsi%1000 == 0
 			},
-			Generate: func(countryCode string) (string, error) {
-				// Generate US ship with Inmarsat B/C/M
-				remaining := fmt.Sprintf("%03d000", rand.Intn(1000))
-				return fmt.Sprintf("366%s", remaining), nil
+			Generate: func(countryCode string) (int, error) {
+				remaining := rand.Intn(1000) * 1000 // 000, 1000, 2000, ..., 999000
+				return 366000000 + remaining, nil
 			},
 		},
 		{
 			Name:     "us-ship-other",
 			FullName: "US Ship Station (Other)",
-			IsType: func(mmsi string) bool {
-				if len(mmsi) != 9 {
-					return false
-				}
-				// US Ship other: starts with 366, ends with 0, not 000
-				return mmsi[:3] == "366" && mmsi[8] == '0' && mmsi[6:] != "000"
+			IsType: func(mmsi int) bool {
+				// US Ship other: starts with 366, not ending with 000, not federal
+				return mmsi >= 366000000 && mmsi <= 366999999 && mmsi%1000 != 0 && mmsi < 366900000
 			},
-			Generate: func(countryCode string) (string, error) {
-				// Generate US ship with Inmarsat C
-				remaining := fmt.Sprintf("%05d0", rand.Intn(100000))
-				return fmt.Sprintf("366%s", remaining), nil
+			Generate: func(countryCode string) (int, error) {
+				// Generate random US ship (not Inmarsat, not federal)
+				remaining := rand.Intn(900000) + 100000 // 100000 to 999999
+				return 366000000 + remaining, nil
 			},
 		},
 		{
 			Name:     "us-ship-regular",
-			FullName: "US Ship Station",
-			IsType: func(mmsi string) bool {
-				if len(mmsi) != 9 {
-					return false
-				}
-				// US Ship regular: starts with 366, not ending with 0
-				return mmsi[:3] == "366" && mmsi[8] != '0'
+			FullName: "US Ship Station (Regular)",
+			IsType: func(mmsi int) bool {
+				// US Ship regular: starts with 367, 368, 369
+				return (mmsi >= 367000000 && mmsi <= 367999999) ||
+					(mmsi >= 368000000 && mmsi <= 368999999) ||
+					(mmsi >= 369000000 && mmsi <= 369999999)
 			},
-			Generate: func(countryCode string) (string, error) {
-				// Generate regular US ship
-				remaining := fmt.Sprintf("%06d", rand.Intn(1000000))
-				return fmt.Sprintf("366%s", remaining), nil
-			},
-		},
-		{
-			Name:     "ship-inmarsat-bcm",
-			FullName: "Ship Station (Inmarsat B/C/M)",
-			IsType: func(mmsi string) bool {
-				if len(mmsi) != 9 {
-					return false
-				}
-				// Inmarsat B/C/M: ends with 000, but not coast station (starts with 00)
-				return mmsi[6:] == "000" && mmsi[:2] != "00"
-			},
-			Generate: func(countryCode string) (string, error) {
-				return m.generateShipStation(countryCode, true, false)
-			},
-		},
-		{
-			Name:     "ship-inmarsat-c",
-			FullName: "Ship Station (Inmarsat C)",
-			IsType: func(mmsi string) bool {
-				if len(mmsi) != 9 {
-					return false
-				}
-				// Inmarsat C: ends with 0 but not 000
-				return mmsi[8] == '0' && mmsi[6:] != "000"
-			},
-			Generate: func(countryCode string) (string, error) {
-				return m.generateShipStation(countryCode, false, true)
-			},
-		},
-		{
-			Name:     "group-coast",
-			FullName: "Group Coast Station",
-			IsType: func(mmsi string) bool {
-				if len(mmsi) != 9 {
-					return false
-				}
-				// Group coast: starts with 00 and ends with 0000 (but not 0000000)
-				return mmsi[:2] == "00" && mmsi[5:] == "0000" && mmsi != "000000000"
-			},
-			Generate: func(countryCode string) (string, error) {
-				return m.generateCoastStation(countryCode, true)
-			},
-		},
-		{
-			Name:     "coast",
-			FullName: "Coast Station",
-			IsType: func(mmsi string) bool {
-				if len(mmsi) != 9 {
-					return false
-				}
-				// Coast station: starts with 00, not 000, not ending with 0000
-				return mmsi[:2] == "00" && mmsi[:3] != "000" && mmsi[5:] != "0000"
-			},
-			Generate: func(countryCode string) (string, error) {
-				return m.generateCoastStation(countryCode, false)
-			},
-		},
-		{
-			Name:     "group-ship",
-			FullName: "Group Ship Station",
-			IsType: func(mmsi string) bool {
-				if len(mmsi) != 9 {
-					return false
-				}
-				// Group ship: starts with 0, not 00
-				return mmsi[0] == '0' && mmsi[:2] != "00"
-			},
-			Generate: func(countryCode string) (string, error) {
-				return m.generateGroupShipStation(countryCode)
+			Generate: func(countryCode string) (int, error) {
+				// Generate random US ship with other MIDs
+				mids := []int{367, 368, 369}
+				selectedMID := mids[rand.Intn(len(mids))]
+				remaining := rand.Intn(1000000)
+				return selectedMID*1000000 + remaining, nil
 			},
 		},
 		{
 			Name:     "sar-aircraft",
 			FullName: "SAR Aircraft",
-			IsType: func(mmsi string) bool {
-				if len(mmsi) != 9 {
-					return false
-				}
-				// SAR aircraft: starts with 111
-				return mmsi[:3] == "111"
+			IsType: func(mmsi int) bool {
+				// SAR aircraft: 111xxxxxx
+				return mmsi >= 111000000 && mmsi <= 111999999
 			},
-			Generate: func(countryCode string) (string, error) {
-				return m.generateSARAircraft(countryCode)
+			Generate: func(countryCode string) (int, error) {
+				remaining := rand.Intn(1000000)
+				return 111000000 + remaining, nil
+			},
+		},
+		{
+			Name:     "ais-sart",
+			FullName: "AIS-SART",
+			IsType: func(mmsi int) bool {
+				// AIS-SART: 970xxxxxx
+				return mmsi >= 970000000 && mmsi <= 970999999
+			},
+			Generate: func(countryCode string) (int, error) {
+				remaining := rand.Intn(1000000)
+				return 970000000 + remaining, nil
 			},
 		},
 		{
 			Name:     "handheld-vhf",
-			FullName: "Handheld VHF Transceiver",
-			IsType: func(mmsi string) bool {
-				if len(mmsi) != 9 {
-					return false
-				}
-				// Handheld VHF: starts with 8
-				return mmsi[0] == '8'
+			FullName: "Handheld VHF",
+			IsType: func(mmsi int) bool {
+				// Handheld VHF: 8xxxxxxx
+				return mmsi >= 800000000 && mmsi <= 899999999
 			},
-			Generate: func(countryCode string) (string, error) {
-				return m.generateHandheldVHF()
-			},
-		},
-		{
-			Name:     "sar-transponder",
-			FullName: "SAR Transponder (AIS-SART)",
-			IsType: func(mmsi string) bool {
-				if len(mmsi) != 9 {
-					return false
-				}
-				// SAR transponder: starts with 970
-				return mmsi[:3] == "970"
-			},
-			Generate: func(countryCode string) (string, error) {
-				return m.generateSARTransponder()
+			Generate: func(countryCode string) (int, error) {
+				remaining := rand.Intn(100000000)
+				return 800000000 + remaining, nil
 			},
 		},
 		{
 			Name:     "man-overboard",
 			FullName: "Man Overboard Device",
-			IsType: func(mmsi string) bool {
-				if len(mmsi) != 9 {
-					return false
-				}
-				// Man overboard: starts with 972
-				return mmsi[:3] == "972"
+			IsType: func(mmsi int) bool {
+				// Man overboard: 972xxxxxx
+				return mmsi >= 972000000 && mmsi <= 972999999
 			},
-			Generate: func(countryCode string) (string, error) {
-				return m.generateManOverboard()
+			Generate: func(countryCode string) (int, error) {
+				remaining := rand.Intn(1000000)
+				return 972000000 + remaining, nil
 			},
 		},
 		{
 			Name:     "epirb-ais",
 			FullName: "EPIRB-AIS",
-			IsType: func(mmsi string) bool {
-				if len(mmsi) != 9 {
-					return false
-				}
-				// EPIRB-AIS: starts with 974
-				return mmsi[:3] == "974"
+			IsType: func(mmsi int) bool {
+				// EPIRB-AIS: 974xxxxxx
+				return mmsi >= 974000000 && mmsi <= 974999999
 			},
-			Generate: func(countryCode string) (string, error) {
-				return m.generateEPIRBAIS()
-			},
-		},
-		{
-			Name:     "craft-associated",
-			FullName: "Craft Associated with Parent Ship",
-			IsType: func(mmsi string) bool {
-				if len(mmsi) != 9 {
-					return false
-				}
-				// Craft associated: starts with 98
-				return mmsi[:2] == "98"
-			},
-			Generate: func(countryCode string) (string, error) {
-				return m.generateCraftAssociated(countryCode)
-			},
-		},
-		{
-			Name:     "navigational-aid",
-			FullName: "Navigational Aid (AtoN)",
-			IsType: func(mmsi string) bool {
-				if len(mmsi) != 9 {
-					return false
-				}
-				// Navigational aid: starts with 99
-				return mmsi[:2] == "99"
-			},
-			Generate: func(countryCode string) (string, error) {
-				return m.generateNavigationalAid(countryCode)
+			Generate: func(countryCode string) (int, error) {
+				remaining := rand.Intn(1000000)
+				return 974000000 + remaining, nil
 			},
 		},
 		{
 			Name:     "ship",
 			FullName: "Ship Station",
-			IsType: func(mmsi string) bool {
-				if len(mmsi) != 9 {
-					return false
-				}
-				// Regular ship: not starting with 0, 1, 8, 9, or 3 (US federal)
-				first := mmsi[0]
-				return first != '0' && first != '1' && first != '8' && first != '9' && mmsi[:4] != "3669"
+			IsType: func(mmsi int) bool {
+				// Regular ship: 100000000 to 799999999, not special ranges
+				return mmsi >= 100000000 && mmsi <= 799999999 &&
+					!(mmsi >= 111000000 && mmsi <= 111999999) && // Not SAR aircraft
+					!(mmsi >= 800000000 && mmsi <= 899999999) && // Not handheld VHF
+					!(mmsi >= 970000000 && mmsi <= 970999999) && // Not AIS-SART
+					!(mmsi >= 972000000 && mmsi <= 972999999) && // Not man overboard
+					!(mmsi >= 974000000 && mmsi <= 974999999) // Not EPIRB-AIS
 			},
-			Generate: func(countryCode string) (string, error) {
+			Generate: func(countryCode string) (int, error) {
 				return m.generateShipStation(countryCode, false, false)
+			},
+		},
+		{
+			Name:     "group-ship",
+			FullName: "Group Ship Station",
+			IsType: func(mmsi int) bool {
+				// Group ship: 0xxxxxxx (first digit is 0)
+				return mmsi >= 10000000 && mmsi <= 99999999
+			},
+			Generate: func(countryCode string) (int, error) {
+				return m.generateGroupShipStation(countryCode)
+			},
+		},
+		{
+			Name:     "coast-station",
+			FullName: "Coast Station",
+			IsType: func(mmsi int) bool {
+				// Coast station: 00xxxxxxx (first two digits are 00)
+				return mmsi >= 1000000 && mmsi <= 9999999
+			},
+			Generate: func(countryCode string) (int, error) {
+				return m.generateCoastStation(countryCode, false)
+			},
+		},
+		{
+			Name:     "group-coast-station",
+			FullName: "Group Coast Station",
+			IsType: func(mmsi int) bool {
+				// Group coast station: 000xxxxxx (first three digits are 000)
+				return mmsi >= 100000 && mmsi <= 999999
+			},
+			Generate: func(countryCode string) (int, error) {
+				return m.generateCoastStation(countryCode, true)
+			},
+		},
+		{
+			Name:     "craft-associated",
+			FullName: "Craft Associated with Parent Ship",
+			IsType: func(mmsi int) bool {
+				// Craft associated: 98xxxxxxx
+				return mmsi >= 980000000 && mmsi <= 989999999
+			},
+			Generate: func(countryCode string) (int, error) {
+				return m.generateCraftAssociated(countryCode)
+			},
+		},
+		{
+			Name:     "navigational-aid",
+			FullName: "Navigational Aid",
+			IsType: func(mmsi int) bool {
+				// Navigational aid: 99xxxxxxx
+				return mmsi >= 990000000 && mmsi <= 999999999
+			},
+			Generate: func(countryCode string) (int, error) {
+				return m.generateNavigationalAid(countryCode)
 			},
 		},
 		{
 			Name:     "free-form",
 			FullName: "Free-form Device",
-			IsType: func(mmsi string) bool {
-				if len(mmsi) != 9 {
-					return false
-				}
-				// Free-form: starts with 9, not 97, 98, 99
-				return mmsi[0] == '9' && mmsi[:2] != "97" && mmsi[:2] != "98" && mmsi[:2] != "99"
+			IsType: func(mmsi int) bool {
+				// Free-form: any other valid MMSI
+				return mmsi >= 100000000 && mmsi <= 999999999
 			},
-			Generate: func(countryCode string) (string, error) {
-				// Generate a free-form device MMSI
-				remaining := fmt.Sprintf("%08d", rand.Intn(100000000))
-				return fmt.Sprintf("9%s", remaining), nil
+			Generate: func(countryCode string) (int, error) {
+				return m.generateRandomMMSI(countryCode)
 			},
 		},
 	}
 }
 
 // generateSpecificType generates a specific type of MMSI using the types slice
-func (m *MMSITool) generateSpecificType(mmsiType, countryCode string) (string, error) {
+func (m *MMSITool) generateSpecificType(mmsiType, countryCode string) (int, error) {
 	for _, t := range m.types {
 		if t.Name == mmsiType {
 			return t.Generate(countryCode)
 		}
 	}
-	return "", fmt.Errorf("unsupported MMSI type: %s", mmsiType)
+	return 0, fmt.Errorf("unsupported MMSI type: %s", mmsiType)
 }
 
 // getSupportedTypes returns a slice of supported MMSI type names
@@ -650,158 +572,120 @@ func (m *MMSITool) getSupportedTypes() []string {
 }
 
 // generateShipStation generates a ship station MMSI
-func (m *MMSITool) generateShipStation(countryCode string, inmarsatBCM, inmarsatC bool) (string, error) {
+func (m *MMSITool) generateShipStation(countryCode string, inmarsatBCM, inmarsatC bool) (int, error) {
 	var allMIDs []int
 	if countryCode != "" {
 		allMIDs = m.getMIDs(countryCode)
 		if len(allMIDs) == 0 {
-			return "", fmt.Errorf("invalid country code: %s", countryCode)
+			return 0, fmt.Errorf("invalid country code: %s", countryCode)
 		}
 	} else {
 		allMIDs = m.allMIDs
 	}
 
+	// Select a random MID from all available ones
 	selectedMID := allMIDs[rand.Intn(len(allMIDs))]
 
-	var suffix string
-	if inmarsatBCM {
-		suffix = "000" // Inmarsat B/C/M
-	} else if inmarsatC {
-		suffix = "0" // Inmarsat C
+	// Generate remaining digits
+	var remaining int
+	if inmarsatBCM || inmarsatC {
+		// Inmarsat B/C/M: ends with 000
+		remaining = rand.Intn(1000) * 1000 // 000, 1000, 2000, ..., 999000
 	} else {
-		// Regular ship - generate random 6 digits
-		suffix = fmt.Sprintf("%06d", rand.Intn(1000000))
+		// Regular ship
+		remaining = rand.Intn(1000000) // 0 to 999999
 	}
 
-	return fmt.Sprintf("%03d%s", selectedMID, suffix), nil
+	return selectedMID*1000000 + remaining, nil
 }
 
 // generateGroupShipStation generates a group ship station MMSI
-func (m *MMSITool) generateGroupShipStation(countryCode string) (string, error) {
+func (m *MMSITool) generateGroupShipStation(countryCode string) (int, error) {
 	var allMIDs []int
 	if countryCode != "" {
 		allMIDs = m.getMIDs(countryCode)
 		if len(allMIDs) == 0 {
-			return "", fmt.Errorf("invalid country code: %s", countryCode)
+			return 0, fmt.Errorf("invalid country code: %s", countryCode)
 		}
 	} else {
 		allMIDs = m.allMIDs
 	}
 
+	// Select a random MID from all available ones
 	selectedMID := allMIDs[rand.Intn(len(allMIDs))]
-	remaining := fmt.Sprintf("%05d", rand.Intn(100000))
 
-	return fmt.Sprintf("0%03d%s", selectedMID, remaining), nil
+	// Generate remaining digits (6 digits, but first digit must be 0 for group)
+	remaining := rand.Intn(100000) // 0 to 99999
+
+	return selectedMID*1000000 + remaining, nil
 }
 
 // generateCoastStation generates a coast station MMSI
-func (m *MMSITool) generateCoastStation(countryCode string, group bool) (string, error) {
+func (m *MMSITool) generateCoastStation(countryCode string, group bool) (int, error) {
 	var allMIDs []int
 	if countryCode != "" {
 		allMIDs = m.getMIDs(countryCode)
 		if len(allMIDs) == 0 {
-			return "", fmt.Errorf("invalid country code: %s", countryCode)
+			return 0, fmt.Errorf("invalid country code: %s", countryCode)
 		}
 	} else {
 		allMIDs = m.allMIDs
 	}
 
+	// Select a random MID from all available ones
 	selectedMID := allMIDs[rand.Intn(len(allMIDs))]
 
+	// Generate remaining digits
+	var remaining int
 	if group {
-		return fmt.Sprintf("00%03d0000", selectedMID), nil
+		// Group coast station: 000xxxxxx
+		remaining = rand.Intn(100000) // 0 to 99999
 	} else {
-		remaining := fmt.Sprintf("%04d", rand.Intn(10000))
-		return fmt.Sprintf("00%03d%s", selectedMID, remaining), nil
+		// Regular coast station: 00xxxxxxx
+		remaining = rand.Intn(1000000) // 0 to 999999
 	}
-}
 
-// generateSARAircraft generates a SAR aircraft MMSI
-func (m *MMSITool) generateSARAircraft(countryCode string) (string, error) {
-	// SAR aircraft: 111xxxxxx
-	remaining := fmt.Sprintf("%06d", rand.Intn(1000000))
-	return fmt.Sprintf("111%s", remaining), nil
-}
-
-// generateHandheldVHF generates a handheld VHF MMSI
-func (m *MMSITool) generateHandheldVHF() (string, error) {
-	// Handheld VHF: 8xxxxxxx
-	remaining := fmt.Sprintf("%08d", rand.Intn(100000000))
-	return fmt.Sprintf("8%s", remaining), nil
-}
-
-// generateSARTransponder generates a SAR transponder MMSI
-func (m *MMSITool) generateSARTransponder() (string, error) {
-	// SAR transponder: 970xxxxxx
-	remaining := fmt.Sprintf("%06d", rand.Intn(1000000))
-	return fmt.Sprintf("970%s", remaining), nil
-}
-
-// generateManOverboard generates a man overboard device MMSI
-func (m *MMSITool) generateManOverboard() (string, error) {
-	// Man overboard: 972xxxxxx
-	remaining := fmt.Sprintf("%06d", rand.Intn(1000000))
-	return fmt.Sprintf("972%s", remaining), nil
-}
-
-// generateEPIRBAIS generates an EPIRB-AIS MMSI
-func (m *MMSITool) generateEPIRBAIS() (string, error) {
-	// EPIRB-AIS: 974xxxxxx
-	remaining := fmt.Sprintf("%06d", rand.Intn(1000000))
-	return fmt.Sprintf("974%s", remaining), nil
+	return selectedMID*1000000 + remaining, nil
 }
 
 // generateCraftAssociated generates a craft associated MMSI
-func (m *MMSITool) generateCraftAssociated(countryCode string) (string, error) {
+func (m *MMSITool) generateCraftAssociated(countryCode string) (int, error) {
 	var allMIDs []int
 	if countryCode != "" {
 		allMIDs = m.getMIDs(countryCode)
 		if len(allMIDs) == 0 {
-			return "", fmt.Errorf("invalid country code: %s", countryCode)
+			return 0, fmt.Errorf("invalid country code: %s", countryCode)
 		}
 	} else {
 		allMIDs = m.allMIDs
 	}
 
-	selectedMID := allMIDs[rand.Intn(len(allMIDs))]
-	remaining := fmt.Sprintf("%05d", rand.Intn(100000))
-
 	// Craft associated: 98xxxxxxx
-	return fmt.Sprintf("98%03d%s", selectedMID, remaining), nil
+	remaining := rand.Intn(10000000) // 0 to 9999999
+
+	return 980000000 + remaining, nil
 }
 
 // generateNavigationalAid generates a navigational aid MMSI
-func (m *MMSITool) generateNavigationalAid(countryCode string) (string, error) {
+func (m *MMSITool) generateNavigationalAid(countryCode string) (int, error) {
 	var allMIDs []int
 	if countryCode != "" {
 		allMIDs = m.getMIDs(countryCode)
 		if len(allMIDs) == 0 {
-			return "", fmt.Errorf("invalid country code: %s", countryCode)
+			return 0, fmt.Errorf("invalid country code: %s", countryCode)
 		}
 	} else {
 		allMIDs = m.allMIDs
 	}
 
-	selectedMID := allMIDs[rand.Intn(len(allMIDs))]
-	remaining := fmt.Sprintf("%05d", rand.Intn(100000))
-
 	// Navigational aid: 99xxxxxxx
-	return fmt.Sprintf("99%03d%s", selectedMID, remaining), nil
-}
+	remaining := rand.Intn(10000000) // 0 to 9999999
 
-// generateUSFederal generates a US Federal MMSI
-func (m *MMSITool) generateUSFederal() (string, error) {
-	// US Federal MMSI: 3669xxxxx
-	remaining := fmt.Sprintf("%05d", rand.Intn(100000))
-	return fmt.Sprintf("3669%s", remaining), nil
+	return 990000000 + remaining, nil
 }
 
 // determineMMSIType determines the type of MMSI based on its format using the types slice
-func (m *MMSITool) determineMMSIType(mmsi string) string {
-	if len(mmsi) != 9 {
-		return "Invalid"
-	}
-
+func (m *MMSITool) determineMMSIType(mmsi int) string {
 	// Check each type in order of specificity (most specific first)
 	for _, t := range m.types {
 		if t.IsType(mmsi) {
@@ -826,45 +710,73 @@ func (m *MMSITool) ValidateParams(params map[string]interface{}) error {
 	}
 
 	// Validate count for generation
-	if count, ok := params["count"]; ok {
-		if countInt, ok := count.(int); ok {
-			if countInt < 1 {
-				return fmt.Errorf("count must be at least 1")
+	if operation, ok := params["operation"]; ok {
+		if operationStr, ok := operation.(string); ok && operationStr == "generate" {
+			if count, ok := params["count"]; ok {
+				if countInt, ok := count.(int); ok {
+					if countInt < 1 {
+						return fmt.Errorf("count must be at least 1")
+					}
+					if countInt > 100 {
+						return fmt.Errorf("count cannot exceed 100")
+					}
+				} else {
+					return fmt.Errorf("count must be an integer")
+				}
 			}
-			if countInt > 100 {
-				return fmt.Errorf("count cannot exceed 100")
-			}
-		} else {
-			return fmt.Errorf("count must be an integer")
-		}
-	}
-
-	// Validate country code for generation
-	if countryCode, ok := params["country-code"]; ok {
-		if countryCodeStr, ok := countryCode.(string); ok {
-			if m.getMID(countryCodeStr) == 0 {
-				return fmt.Errorf("invalid country code: %s", countryCodeStr)
-			}
-		} else {
-			return fmt.Errorf("country-code must be a string")
 		}
 	}
 
 	// Validate input for validation
 	if operation, ok := params["operation"]; ok {
 		if operationStr, ok := operation.(string); ok && operationStr == "validate" {
-			if input, ok := params["input"]; !ok {
+			if input, ok := params["input"]; ok {
+				if _, ok := input.(string); !ok {
+					return fmt.Errorf("input must be a string")
+				}
+			} else {
 				return fmt.Errorf("input parameter is required for validation")
-			} else if _, ok := input.(string); !ok {
-				return fmt.Errorf("input must be a string")
 			}
+		}
+	}
+
+	// Validate type parameter
+	if mmsiType, ok := params["type"]; ok {
+		if typeStr, ok := mmsiType.(string); ok {
+			supportedTypes := m.getSupportedTypes()
+			found := false
+			for _, t := range supportedTypes {
+				if t == typeStr {
+					found = true
+					break
+				}
+			}
+			if !found {
+				return fmt.Errorf("unsupported MMSI type: %s. Supported types: %v", typeStr, supportedTypes)
+			}
+		} else {
+			return fmt.Errorf("type must be a string")
+		}
+	}
+
+	// Validate country code
+	if countryCode, ok := params["country-code"]; ok {
+		if countryStr, ok := countryCode.(string); ok {
+			if countryStr != "" {
+				mids := m.getMIDs(countryStr)
+				if len(mids) == 0 {
+					return fmt.Errorf("invalid country code: %s", countryStr)
+				}
+			}
+		} else {
+			return fmt.Errorf("country-code must be a string")
 		}
 	}
 
 	return nil
 }
 
-// GetInputSchema returns the JSON schema for tool input parameters
+// GetInputSchema returns the JSON schema for the tool's input parameters
 func (m *MMSITool) GetInputSchema() map[string]interface{} {
 	return CreateJSONSchema([]ParameterDefinition{
 		{
@@ -881,28 +793,28 @@ func (m *MMSITool) GetInputSchema() map[string]interface{} {
 			Required:    false,
 		},
 		{
+			Name:        "count",
+			Type:        "integer",
+			Description: "Number of MMSI numbers to generate (1-100, default: 1)",
+			Required:    false,
+		},
+		{
 			Name:        "type",
 			Type:        "string",
-			Description: "MMSI type to generate (optional for generation)",
+			Description: "Specific MMSI type to generate",
 			Required:    false,
 			Enum:        m.getSupportedTypes(),
 		},
 		{
 			Name:        "country-code",
 			Type:        "string",
-			Description: "Country code for generation (e.g., US, GB, DE, FR, etc.)",
-			Required:    false,
-		},
-		{
-			Name:        "count",
-			Type:        "integer",
-			Description: "Number of MMSI numbers to generate (max: 100)",
+			Description: "Country code for MMSI generation (e.g., 'US', 'GB', 'DE')",
 			Required:    false,
 		},
 	})
 }
 
-// GetOutputSchema returns the JSON schema for tool output
+// GetOutputSchema returns the JSON schema for the tool's output
 func (m *MMSITool) GetOutputSchema() map[string]interface{} {
 	return map[string]interface{}{
 		"type": "object",

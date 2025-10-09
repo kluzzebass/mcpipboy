@@ -215,13 +215,14 @@ Status: Complete - IMO tool with validation and generation functionality
 Implement Maritime Mobile Service Identity (MMSI) number validation and generation with country code support.
 
 8. **MMSI Tool**
-   - [ ] Create `internal/tools/mmsi.go` with flexible MMSI functionality
-   - [ ] Implement operation parameter: "validate", "generate"
-   - [ ] Add MMSI validation with format checking (9-digit number, country codes)
-   - [ ] Add MMSI generation with optional country code parameter and count parameter
-   - [ ] Implement country code validation and lookup
-   - [ ] Add comprehensive test coverage in `internal/tools/mmsi_test.go`
-   - [ ] Add CLI command in `cmd/mcpipboy/mmsi.go`
+   - [x] Create `internal/tools/mmsi.go` with flexible MMSI functionality
+   - [x] Implement operation parameter: "validate", "generate"
+   - [x] Add MMSI validation with format checking (9-digit number, country codes)
+   - [x] Add MMSI generation with optional country code parameter and count parameter
+   - [x] Implement country code validation and lookup
+   - [x] Add comprehensive test coverage in `internal/tools/mmsi_test.go`
+   - [x] Add CLI command in `cmd/mcpipboy/mmsi.go`
+   - [x] **Enhanced with type-specific generation** - Added 16 supported MMSI types (ship, sar-aircraft, us-federal, etc.) with dedicated generation functions and CLI `--type` parameter
    - [ ] Add CLI tests in `cmd/mcpipboy/mmsi_test.go`
 
 How to test

@@ -2,6 +2,7 @@
 package server
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -367,20 +368,19 @@ func sendMCPRequest(stdin io.WriteCloser, request map[string]interface{}) error 
 
 func readMCPResponse(stdout io.ReadCloser) (map[string]interface{}, error) {
 	// Read one line of JSON response
-	buffer := make([]byte, 4096)
-	n, err := stdout.Read(buffer)
-	if err != nil {
-		return nil, err
+	scanner := bufio.NewScanner(stdout)
+	if !scanner.Scan() {
+		return nil, fmt.Errorf("no response received")
 	}
 
-	line := strings.TrimSpace(string(buffer[:n]))
+	line := strings.TrimSpace(scanner.Text())
 	if line == "" {
 		return nil, fmt.Errorf("empty response")
 	}
 
 	var response map[string]interface{}
 	if err := json.Unmarshal([]byte(line), &response); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to parse JSON: %v", err)
 	}
 
 	return response, nil

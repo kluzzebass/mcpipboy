@@ -58,9 +58,7 @@ func runUUID(cmd *cobra.Command, args []string) error {
 	if uuidVersion != "" {
 		params["version"] = uuidVersion
 	}
-	if uuidCount > 0 {
-		params["count"] = float64(uuidCount)
-	}
+	params["count"] = float64(uuidCount)
 	if uuidNamespace != "" {
 		params["namespace"] = uuidNamespace
 	}

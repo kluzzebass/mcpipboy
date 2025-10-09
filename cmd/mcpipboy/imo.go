@@ -85,9 +85,9 @@ func runIMO(cmd *cobra.Command, args []string) error {
 		// Validation result
 		if valid, ok := v["valid"].(bool); ok {
 			if valid {
-				fmt.Printf("✅ Valid IMO: %s\n", v["imo"])
+				fmt.Printf("Valid IMO: %s\n", v["imo"])
 			} else {
-				fmt.Printf("❌ Invalid IMO: %s\n", v["error"])
+				fmt.Printf("Invalid IMO: %s\n", v["error"])
 				if input, ok := v["input"].(string); ok {
 					fmt.Printf("   Input: %s\n", input)
 				}

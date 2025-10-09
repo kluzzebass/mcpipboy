@@ -152,6 +152,17 @@ func (t *TimeTool) ValidateParams(params map[string]interface{}) error {
 		}
 	}
 
+	// Validate offset
+	if offset, ok := params["offset"]; ok {
+		if offsetStr, ok := offset.(string); ok {
+			if _, err := time.ParseDuration(offsetStr); err != nil {
+				return fmt.Errorf("invalid offset format: %s", offsetStr)
+			}
+		} else {
+			return fmt.Errorf("offset parameter must be a string")
+		}
+	}
+
 	return nil
 }
 

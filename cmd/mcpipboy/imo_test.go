@@ -14,13 +14,13 @@ func TestRunIMO(t *testing.T) {
 		{
 			name:     "validate_valid_imo",
 			args:     []string{"--operation", "validate", "--input", "1234567"},
-			expected: "✅ Valid IMO: 1234567",
+			expected: "Valid IMO: 1234567",
 			hasError: false,
 		},
 		{
 			name:     "validate_invalid_imo",
 			args:     []string{"--operation", "validate", "--input", "1234568"},
-			expected: "❌ Invalid IMO:",
+			expected: "Invalid IMO:",
 			hasError: false,
 		},
 		{

@@ -46,3 +46,6 @@ bin/
 .Spotlight-V100
 .Trashes
 .VolumeIcon.icns
+
+# stray binary
+/mcpipboy

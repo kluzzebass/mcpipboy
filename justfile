@@ -6,7 +6,7 @@ _default:
 # Build the application
 build:
     @echo "Building mcpipboy..."
-    go build -o bin/mcpipboy ./cmd/mcpipboy
+    go build -o dist/mcpipboy ./cmd/mcpipboy
 
 # Build release binaries with static linking
 build-release:

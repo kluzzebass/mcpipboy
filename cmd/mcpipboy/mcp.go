@@ -1,4 +1,4 @@
-// Package main provides the serve command for mcpipboy
+// Package main provides the mcp command for mcpipboy
 package main
 
 import (
@@ -13,15 +13,15 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// serveCmd represents the serve command
-var serveCmd = &cobra.Command{
-	Use:   "serve",
+// mcpCmd represents the mcp command
+var mcpCmd = &cobra.Command{
+	Use:   "mcp",
 	Short: "Start the MCP server",
 	Long: `Start the MCP (Model Context Protocol) server that provides tools to AI agents.
 The server communicates via stdin/stdout and can be configured to enable or disable specific tools.
 
 You can also toggle tools on/off using the tools manager in your MCP client.`,
-	RunE: runServe,
+	RunE: runMCP,
 }
 
 var (
@@ -32,23 +32,23 @@ var (
 )
 
 func init() {
-	// Set group ID for serve command
-	serveCmd.GroupID = "server"
+	// Set group ID for mcp command
+	mcpCmd.GroupID = "server"
 
-	rootCmd.AddCommand(serveCmd)
+	rootCmd.AddCommand(mcpCmd)
 
 	// Add flags for tool enable/disable
-	serveCmd.Flags().StringSliceVar(&enableTools, "enable", []string{}, "Comma-separated list of tools to enable (mutually exclusive with --disable)")
-	serveCmd.Flags().StringSliceVar(&disableTools, "disable", []string{}, "Comma-separated list of tools to disable (mutually exclusive with --enable)")
-	serveCmd.Flags().BoolVar(&debugMode, "debug", false, "Enable debug logging for MCP protocol messages")
-	serveCmd.Flags().StringVar(&logFile, "log-file", "", "File to write debug logs to (default: stderr)")
+	mcpCmd.Flags().StringSliceVar(&enableTools, "enable", []string{}, "Comma-separated list of tools to enable (mutually exclusive with --disable)")
+	mcpCmd.Flags().StringSliceVar(&disableTools, "disable", []string{}, "Comma-separated list of tools to disable (mutually exclusive with --enable)")
+	mcpCmd.Flags().BoolVar(&debugMode, "debug", false, "Enable debug logging for MCP protocol messages")
+	mcpCmd.Flags().StringVar(&logFile, "log-file", "", "File to write debug logs to (default: stderr)")
 
 	// Mark flags as mutually exclusive
-	serveCmd.MarkFlagsMutuallyExclusive("enable", "disable")
+	mcpCmd.MarkFlagsMutuallyExclusive("enable", "disable")
 
 	// Add dynamic completion for tool names
-	serveCmd.RegisterFlagCompletionFunc("enable", toolCompletionFunc)
-	serveCmd.RegisterFlagCompletionFunc("disable", toolCompletionFunc)
+	mcpCmd.RegisterFlagCompletionFunc("enable", toolCompletionFunc)
+	mcpCmd.RegisterFlagCompletionFunc("disable", toolCompletionFunc)
 }
 
 // getAvailableTools returns a registry with all available tools registered
@@ -78,7 +78,7 @@ func toolCompletionFunc(cmd *cobra.Command, args []string, toComplete string) ([
 	return registry.ListTools(), cobra.ShellCompDirectiveNoFileComp
 }
 
-func runServe(cmd *cobra.Command, args []string) error {
+func runMCP(cmd *cobra.Command, args []string) error {
 	// Validate that enable and disable are not both used
 	if len(enableTools) > 0 && len(disableTools) > 0 {
 		return fmt.Errorf("--enable and --disable flags are mutually exclusive")
@@ -161,3 +161,4 @@ func runServe(cmd *cobra.Command, args []string) error {
 	ctx := context.Background()
 	return srv.Start(ctx)
 }
+

@@ -45,7 +45,7 @@ func TestMCPServerIntegration(t *testing.T) {
 
 func testToolDiscovery(t *testing.T, projectRoot string) {
 	// Start the MCP server
-	cmd := exec.Command(projectRoot+"test-mcpipboy", "serve")
+	cmd := exec.Command(projectRoot+"test-mcpipboy", "mcp")
 	cmd.Stderr = os.Stderr
 
 	stdin, err := cmd.StdinPipe()
@@ -157,7 +157,7 @@ func testToolDiscovery(t *testing.T, projectRoot string) {
 
 func testToolExecution(t *testing.T, projectRoot string) {
 	// Start the MCP server
-	cmd := exec.Command(projectRoot+"test-mcpipboy", "serve")
+	cmd := exec.Command(projectRoot+"test-mcpipboy", "mcp")
 	cmd.Stderr = os.Stderr
 
 	stdin, err := cmd.StdinPipe()
@@ -417,7 +417,7 @@ func TestMCPServerProtocolCompliance(t *testing.T) {
 }
 
 func testInvalidJSONRPC(t *testing.T, projectRoot string) {
-	cmd := exec.Command(projectRoot+"test-mcpipboy", "serve")
+	cmd := exec.Command(projectRoot+"test-mcpipboy", "mcp")
 	// Capture stderr to avoid spam from error messages
 	var stderrBuf bytes.Buffer
 	cmd.Stderr = &stderrBuf
@@ -474,7 +474,7 @@ func testInvalidJSONRPC(t *testing.T, projectRoot string) {
 }
 
 func testUnsupportedMethod(t *testing.T, projectRoot string) {
-	cmd := exec.Command(projectRoot+"test-mcpipboy", "serve")
+	cmd := exec.Command(projectRoot+"test-mcpipboy", "mcp")
 	// Capture stderr to avoid spam from error messages
 	var stderrBuf bytes.Buffer
 	cmd.Stderr = &stderrBuf

@@ -29,11 +29,19 @@ build-all:
     # Linux
     CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "$LDFLAGS" -o dist/mcpipboy-linux-amd64 ./cmd/mcpipboy
     CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -ldflags "$LDFLAGS" -o dist/mcpipboy-linux-arm64 ./cmd/mcpipboy
+    CGO_ENABLED=0 GOOS=linux GOARCH=386 go build -ldflags "$LDFLAGS" -o dist/mcpipboy-linux-386 ./cmd/mcpipboy
+    CGO_ENABLED=0 GOOS=linux GOARCH=arm GOARM=7 go build -ldflags "$LDFLAGS" -o dist/mcpipboy-linux-arm ./cmd/mcpipboy
+    CGO_ENABLED=0 GOOS=linux GOARCH=riscv64 go build -ldflags "$LDFLAGS" -o dist/mcpipboy-linux-riscv64 ./cmd/mcpipboy
     # macOS
     CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -ldflags "$LDFLAGS" -o dist/mcpipboy-darwin-amd64 ./cmd/mcpipboy
     CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -ldflags "$LDFLAGS" -o dist/mcpipboy-darwin-arm64 ./cmd/mcpipboy
     # Windows
     CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -ldflags "$LDFLAGS" -o dist/mcpipboy-windows-amd64.exe ./cmd/mcpipboy
+    CGO_ENABLED=0 GOOS=windows GOARCH=arm64 go build -ldflags "$LDFLAGS" -o dist/mcpipboy-windows-arm64.exe ./cmd/mcpipboy
+    CGO_ENABLED=0 GOOS=windows GOARCH=386 go build -ldflags "$LDFLAGS" -o dist/mcpipboy-windows-386.exe ./cmd/mcpipboy
+    # FreeBSD
+    CGO_ENABLED=0 GOOS=freebsd GOARCH=amd64 go build -ldflags "$LDFLAGS" -o dist/mcpipboy-freebsd-amd64 ./cmd/mcpipboy
+    CGO_ENABLED=0 GOOS=freebsd GOARCH=arm64 go build -ldflags "$LDFLAGS" -o dist/mcpipboy-freebsd-arm64 ./cmd/mcpipboy
     echo "Built binaries for all platforms in dist/"
 
 # Run tests

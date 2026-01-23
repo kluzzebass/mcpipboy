@@ -27,7 +27,7 @@ func (v *VersionTool) Description() string {
 
 // Execute runs the version tool
 func (v *VersionTool) Execute(params map[string]interface{}) (interface{}, error) {
-	return version.Version, nil
+	return version.Version(), nil
 }
 
 // ValidateParams validates the input parameters

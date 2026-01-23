@@ -1,13 +1,10 @@
-// Package version provides version information for mcpipboy
-package version
+package mcpipboy
 
-import (
-	_ "embed"
-	"strings"
-)
+// LibraryVersion is the current version of the mcpipboy library
+// This is updated manually when releasing new library versions
+const LibraryVersion = "0.3.0"
 
-//go:embed VERSION
-var versionContent string
-
-// Version is the current version of mcpipboy
-var Version = strings.TrimSpace(versionContent)
+// Version returns the current version of the mcpipboy library
+func Version() string {
+	return LibraryVersion
+}

@@ -12,6 +12,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/kluzzebass/mcpipboy"
 )
 
 // TestMCPServerIntegration tests the MCP server with actual MCP protocol communication
@@ -308,12 +310,8 @@ func testVersionToolExecution(t *testing.T, stdin io.WriteCloser, stdout io.Read
 		t.Fatalf("Failed to parse version result JSON: %v", err)
 	}
 
-	// Read the expected version from VERSION file
-	expectedVersionBytes, err := os.ReadFile("../../VERSION")
-	if err != nil {
-		t.Fatalf("Failed to read VERSION file: %v", err)
-	}
-	expectedVersion := strings.TrimSpace(string(expectedVersionBytes))
+	// Get the expected version from the library
+	expectedVersion := mcpipboy.Version()
 
 	// Validate the version matches
 	if versionResult["result"] != expectedVersion {

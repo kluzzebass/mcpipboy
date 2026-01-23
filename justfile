@@ -5,50 +5,41 @@ _default:
 
 # Build the application
 build:
-    @echo "Building mcpipboy..."
-    go build -o dist/mcpipboy ./cmd/mcpipboy
+    #!/usr/bin/env bash
+    set -euo pipefail
+    VERSION=$(git describe --tags --always --dirty 2>/dev/null || echo "dev")
+    COMMIT=$(git rev-parse --short HEAD 2>/dev/null || echo "none")
+    DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+    LDFLAGS="-s -w -X main.version=$VERSION -X main.commit=$COMMIT -X main.date=$DATE"
+    echo "Building mcpipboy $VERSION..."
+    mkdir -p dist
+    CGO_ENABLED=0 go build -ldflags "$LDFLAGS" -o dist/mcpipboy ./cmd/mcpipboy
+    echo "Built dist/mcpipboy"
 
-# Build release binaries with static linking
-build-release:
-    @echo "Building release binaries..."
-    @mkdir -p dist
+# Build release binaries with static linking for all platforms
+build-all:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    VERSION=$(git describe --tags --always --dirty 2>/dev/null || echo "dev")
+    COMMIT=$(git rev-parse --short HEAD 2>/dev/null || echo "none")
+    DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+    LDFLAGS="-s -w -X main.version=$VERSION -X main.commit=$COMMIT -X main.date=$DATE"
+    echo "Building mcpipboy $VERSION for all platforms..."
+    mkdir -p dist
     # Linux
-    GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w" -o dist/mcpipboy-linux-amd64 ./cmd/mcpipboy
-    GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go build -ldflags="-s -w" -o dist/mcpipboy-linux-arm64 ./cmd/mcpipboy
+    CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "$LDFLAGS" -o dist/mcpipboy-linux-amd64 ./cmd/mcpipboy
+    CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -ldflags "$LDFLAGS" -o dist/mcpipboy-linux-arm64 ./cmd/mcpipboy
     # macOS
-    GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w" -o dist/mcpipboy-darwin-amd64 ./cmd/mcpipboy
-    GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 go build -ldflags="-s -w" -o dist/mcpipboy-darwin-arm64 ./cmd/mcpipboy
+    CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -ldflags "$LDFLAGS" -o dist/mcpipboy-darwin-amd64 ./cmd/mcpipboy
+    CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -ldflags "$LDFLAGS" -o dist/mcpipboy-darwin-arm64 ./cmd/mcpipboy
     # Windows
-    GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w" -o dist/mcpipboy-windows-amd64.exe ./cmd/mcpipboy
-    @echo "Release binaries built in dist/"
-
-# Create GitHub release
-release:
-    @echo "Creating GitHub release..."
-    @version=$(cat VERSION) && \
-    echo "Creating release v$version" && \
-    gh release create "v$version" \
-        --title "mcpipboy v$version" \
-        --notes "Release v$version of mcpipboy - MCP server for AI agents" \
-        dist/mcpipboy-linux-amd64 \
-        dist/mcpipboy-linux-arm64 \
-        dist/mcpipboy-darwin-amd64 \
-        dist/mcpipboy-darwin-arm64 \
-        dist/mcpipboy-windows-amd64.exe
-
-# Generate release notes from git commits since last tag
-release-notes:
-    @echo "Generating release notes..."
-    @git log --oneline --pretty=format:"- %s" --since="1 month ago"
-
-# Build and release (builds binaries then creates GitHub release)
-build-and-release: build-release release
-    @echo "Build and release complete!"
+    CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -ldflags "$LDFLAGS" -o dist/mcpipboy-windows-amd64.exe ./cmd/mcpipboy
+    echo "Built binaries for all platforms in dist/"
 
 # Run tests
 test:
     @echo "Running tests..."
-    go test -v ./...
+    @go test -v ./...
 
 # Run tests with coverage and show percentages
 test-coverage:
@@ -88,10 +79,11 @@ lint:
         echo "golangci-lint not installed, skipping..."; \
     fi
 
-# Development mode - build and run
-dev: build
-    @echo "Running mcpipboy in development mode..."
-    ./bin/mcpipboy
+# Development mode - build and test
+dev:
+    @just build
+    @just test
+    @echo "Development build complete!"
 
 # Install dependencies
 deps:
@@ -100,9 +92,15 @@ deps:
     go mod tidy
 
 # Install binary to $GOPATH/bin
-install: build
-    @echo "Installing mcpipboy..."
-    cp bin/mcpipboy $(shell go env GOPATH)/bin/
+install:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    VERSION=$(git describe --tags --always --dirty 2>/dev/null || echo "dev")
+    COMMIT=$(git rev-parse --short HEAD 2>/dev/null || echo "none")
+    DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+    LDFLAGS="-s -w -X main.version=$VERSION -X main.commit=$COMMIT -X main.date=$DATE"
+    echo "Installing mcpipboy $VERSION..."
+    go install -ldflags "$LDFLAGS" ./cmd/mcpipboy
 
 # Clean build artifacts
 clean:
@@ -114,58 +112,20 @@ clean:
 check: fmt vet test
     @echo "All checks passed!"
 
-# Get current version from VERSION file
-get-version:
-    @cat VERSION
+# Show project info
+info:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    VERSION=$(git describe --tags --always --dirty 2>/dev/null || echo "dev")
+    echo "mcpipboy - MCP Server for AI Agent Tools"
+    echo "========================================="
+    echo "Version: $VERSION"
+    echo "Go version: $(go version)"
+    echo "Git commit: $(git rev-parse --short HEAD 2>/dev/null || echo 'none')"
+    echo "Git branch: $(git branch --show-current 2>/dev/null || echo 'none')"
+    echo "Build date: $(date)"
 
-# Set version in VERSION file
-set-version version:
-    @echo "{{version}}" > VERSION
-    @echo "Version set to {{version}}"
-
-# Bump patch version (0.1.0 -> 0.1.1)
-bump-patch:
-    @current=$(cat VERSION) && \
-    major=$(echo $current | cut -d. -f1) && \
-    minor=$(echo $current | cut -d. -f2) && \
-    patch=$(echo $current | cut -d. -f3) && \
-    new_version="$major.$minor.$((patch + 1))" && \
-    echo "$new_version" > VERSION && \
-    echo "Version bumped to $new_version"
-
-# Bump minor version (0.1.0 -> 0.2.0)
-bump-minor:
-    @current=$(cat VERSION) && \
-    major=$(echo $current | cut -d. -f1) && \
-    minor=$(echo $current | cut -d. -f2) && \
-    new_version="$major.$((minor + 1)).0" && \
-    echo "$new_version" > VERSION && \
-    echo "Version bumped to $new_version"
-
-# Bump major version (0.1.0 -> 1.0.0)
-bump-major:
-    @current=$(cat VERSION) && \
-    major=$(echo $current | cut -d. -f1) && \
-    new_version="$((major + 1)).0.0" && \
-    echo "$new_version" > VERSION && \
-    echo "Version bumped to $new_version"
-
-# Bump prerelease version (0.1.0 -> 0.1.0-alpha1)
-bump-prerelease:
-    @current=$(cat VERSION) && \
-    if echo $current | grep -q "-"; then \
-        base=$(echo $current | cut -d- -f1) && \
-        prerelease=$(echo $current | cut -d- -f2) && \
-        if echo $prerelease | grep -q "alpha"; then \
-            alpha_num=$(echo $prerelease | sed 's/alpha//') && \
-            if [ -z "$alpha_num" ]; then alpha_num=1; else alpha_num=$((alpha_num + 1)); fi && \
-            new_version="$base-alpha$alpha_num"; \
-        else \
-            new_version="$base-alpha1"; \
-        fi; \
-    else \
-        new_version="$current-alpha1"; \
-    fi && \
-    echo "$new_version" > VERSION && \
-    echo "Version bumped to $new_version"
-
+# Show current git tags
+git-tags:
+    @echo "Git tags:"
+    @git tag --sort=-version:refname

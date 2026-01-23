@@ -4,8 +4,15 @@ package main
 import (
 	"os"
 
-	version "github.com/kluzzebass/mcpipboy"
+	"github.com/kluzzebass/mcpipboy"
 	"github.com/spf13/cobra"
+)
+
+// Version information - set via ldflags at build time
+var (
+	version = "dev"
+	commit  = "none"
+	date    = "unknown"
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -14,11 +21,11 @@ var rootCmd = &cobra.Command{
 	Short: "MCP server for AI agent utility tools",
 	Long: `Flawlessly generated, rigorously validated - dependable data for the digital wasteland.
 
-mcpipboy is an MCP (Model Context Protocol) server that provides agentic AIs 
-with essential tools for common tasks they struggle with, including UUID generation, 
-checksummed identifier verification/generation (IMO, MMSI, credit card numbers, ISBN, etc.), 
+mcpipboy is an MCP (Model Context Protocol) server that provides agentic AIs
+with essential tools for common tasks they struggle with, including UUID generation,
+checksummed identifier verification/generation (IMO, MMSI, credit card numbers, ISBN, etc.),
 and other utility functions.`,
-	Version: version.Version,
+	Version: getVersionInfo(),
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -27,6 +34,27 @@ func Execute() {
 	if err != nil {
 		os.Exit(1)
 	}
+}
+
+// getVersionInfo returns detailed version information
+func getVersionInfo() string {
+	v := version
+	// If version was not set by build process, use library version
+	if v == "dev" {
+		v = mcpipboy.Version()
+	}
+
+	// Add commit and date if available
+	if commit != "none" || date != "unknown" {
+		v += "\n"
+		if commit != "none" {
+			v += "  commit: " + commit + "\n"
+		}
+		if date != "unknown" {
+			v += "  built:  " + date
+		}
+	}
+	return v
 }
 
 func init() {

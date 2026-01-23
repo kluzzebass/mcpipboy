@@ -1,0 +1,128 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+          cache: false
+
+      - name: Run tests
+        run: go test -v ./...
+
+      - name: Build binaries
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          COMMIT=$(git rev-parse --short HEAD)
+          DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          LDFLAGS="-s -w -X main.version=$VERSION -X main.commit=$COMMIT -X main.date=$DATE"
+
+          mkdir -p dist
+
+          # Linux builds
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "$LDFLAGS" -o dist/mcpipboy-linux-amd64 ./cmd/mcpipboy
+          CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -ldflags "$LDFLAGS" -o dist/mcpipboy-linux-arm64 ./cmd/mcpipboy
+
+          # macOS builds
+          CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -ldflags "$LDFLAGS" -o dist/mcpipboy-darwin-amd64 ./cmd/mcpipboy
+          CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -ldflags "$LDFLAGS" -o dist/mcpipboy-darwin-arm64 ./cmd/mcpipboy
+
+          # Windows build
+          CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -ldflags "$LDFLAGS" -o dist/mcpipboy-windows-amd64.exe ./cmd/mcpipboy
+
+          # Create checksums
+          cd dist && sha256sum * > checksums.txt
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            dist/mcpipboy-linux-amd64
+            dist/mcpipboy-linux-arm64
+            dist/mcpipboy-darwin-amd64
+            dist/mcpipboy-darwin-arm64
+            dist/mcpipboy-windows-amd64.exe
+            dist/checksums.txt
+          generate_release_notes: true
+
+      - name: Extract version and checksums
+        id: version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          VERSION_NUM=${VERSION#v}
+          SHA256_X86=$(grep "mcpipboy-darwin-amd64" dist/checksums.txt | cut -d' ' -f1)
+          SHA256_ARM=$(grep "mcpipboy-darwin-arm64" dist/checksums.txt | cut -d' ' -f1)
+
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "version_number=$VERSION_NUM" >> $GITHUB_OUTPUT
+          echo "sha256_x86=$SHA256_X86" >> $GITHUB_OUTPUT
+          echo "sha256_arm=$SHA256_ARM" >> $GITHUB_OUTPUT
+
+      - name: Checkout homebrew-tap
+        uses: actions/checkout@v4
+        with:
+          repository: kluzzebass/homebrew-tap
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          path: homebrew-tap
+
+      - name: Update Homebrew formula
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          VERSION_NUM: ${{ steps.version.outputs.version_number }}
+          SHA256_X86: ${{ steps.version.outputs.sha256_x86 }}
+          SHA256_ARM: ${{ steps.version.outputs.sha256_arm }}
+        run: |
+          cd homebrew-tap
+          cat > mcpipboy.rb << EOF
+          class Mcpipboy < Formula
+            desc "MCP server providing AI agents with data generation and validation tools"
+            homepage "https://github.com/kluzzebass/mcpipboy"
+            version "$VERSION_NUM"
+            license "MIT"
+
+            on_macos do
+              on_intel do
+                url "https://github.com/kluzzebass/mcpipboy/releases/download/$VERSION/mcpipboy-darwin-amd64"
+                sha256 "$SHA256_X86"
+              end
+
+              on_arm do
+                url "https://github.com/kluzzebass/mcpipboy/releases/download/$VERSION/mcpipboy-darwin-arm64"
+                sha256 "$SHA256_ARM"
+              end
+            end
+
+            def install
+              bin.install Dir["mcpipboy-*"].first => "mcpipboy"
+            end
+
+            test do
+              assert_match version.to_s, shell_output("#{bin}/mcpipboy --version")
+            end
+          end
+          EOF
+
+      - name: Commit and push Homebrew formula
+        run: |
+          cd homebrew-tap
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add mcpipboy.rb
+          git commit -m "Update mcpipboy to ${{ steps.version.outputs.version }}"
+          git push
